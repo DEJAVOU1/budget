@@ -169,18 +169,27 @@ const PS=new Date(2026,5,3);// Jun 3 local midnight
 const TS=new Date(2026,5,3);// Jun 3 local midnight
 
 const CATS=[
-  {id:'groceries',  label:'Groceries',        icon:'🛒',weekly:550,  tracked:true},
-  {id:'eatingout',  label:'Eating Out',        icon:'🍽',weekly:70,   tracked:true},
+  {id:'groceries',  label:'Groceries',        icon:'🛒',weekly:550,  tracked:true,
+    steps:[{from:'2026-07-01',weekly:515},{from:'2026-12-30',weekly:530}]},
+  {id:'eatingout',  label:'Eating Out',        icon:'🍽',weekly:70,   tracked:true,
+    steps:[{from:'2026-07-01',weekly:60}]},
   {id:'alcohol',    label:'Alcohol',           icon:'🍷',weekly:35,   tracked:true},
-  {id:'gifts',      label:'Gifts',             icon:'🎁',weekly:35,   tracked:true},
-  {id:'clothes',    label:'Clothes',           icon:'👕',weekly:65,   tracked:true},
-  {id:'beauty',     label:'Beauty',            icon:'💅',weekly:70,   tracked:true},
+  {id:'gifts',      label:'Gifts',             icon:'🎁',weekly:35,   tracked:true,
+    steps:[{from:'2026-07-01',weekly:125},{from:'2026-12-30',weekly:62.5}]},
+  {id:'clothes',    label:'Clothes',           icon:'👕',weekly:65,   tracked:true,
+    steps:[{from:'2026-07-01',weekly:60}]},
+  {id:'beauty',     label:'Beauty',            icon:'💅',weekly:70,   tracked:true,
+    steps:[{from:'2026-07-01',weekly:65}]},
   {id:'house',      label:'House Purchases',   icon:'🏠',weekly:50,   tracked:true},
-  {id:'entertain',  label:'Going Out',         icon:'🎭',weekly:25,   tracked:true},
+  {id:'entertain',  label:'Going Out',         icon:'🎭',weekly:25,   tracked:true,
+    steps:[{from:'2026-07-01',weekly:20}]},
   {id:'uber',       label:'Uber / Taxi',       icon:'🚗',weekly:25,   tracked:true},
-  {id:'petcare',    label:'Pet Care',          icon:'🐾',weekly:17.5, tracked:true},
+  {id:'petcare',    label:'Pet Care',          icon:'🐾',weekly:17.5, tracked:true,
+    steps:[{from:'2026-07-01',weekly:15}]},
   {id:'pttolls',    label:'PT/Tolls/Parking',  icon:'🚌',weekly:23,   tracked:true},
   {id:'petrolcar',  label:'Petrol / Car',      icon:'⛽',weekly:55,   tracked:true},
+  {id:'newtreats',  label:'Treats',            icon:'🍬',weekly:0,    tracked:true,
+    steps:[{from:'2026-12-30',weekly:10}]},
   {id:'kidsschool', label:'Kids School',       icon:'📚',weekly:72,   tracked:false,fixed:true},
   {id:'kidssports', label:'Kids Sports',       icon:'⚽',weekly:60,   tracked:false,fixed:true},
   {id:'personalsubs',label:'Subscriptions',    icon:'📱',weekly:10,   tracked:false,fixed:true},
@@ -195,11 +204,15 @@ const CATS=[
 ];
 
 const SAVINGS=[
-  {id:'overseas2027',label:'Xmas 2027 OS Trip', weekly:100,  note:'Target ~$8,200 by Dec 2027',phase:'until2027'},
+  {id:'overseas2027',label:'Xmas 2027 OS Trip', weekly:100,  note:'Target ~$8,200 by Dec 2027',phase:'until2027',
+    steps:[{from:'2026-07-01',weekly:92.5},{from:'2026-12-30',weekly:107.5}]},
   {id:'inheritance', label:"Kids' Shares",       weekly:140,  note:'Target $7,280/yr · into investment shares',phase:'always'},
-  {id:'emergency',   label:'Emergency Fund',     weekly:50,   note:'$2,600/yr – shock absorber',phase:'always'},
-  {id:'renovation',  label:'Renovation Fund',    weekly:27.5,   note:'$1,560/yr for repairs',phase:'always'},
-  {id:'localholiday',label:'Local Holiday',      weekly:57.5,   note:'$7,500 every 2 years',phase:'always'},
+  {id:'emergency',   label:'Emergency Fund',     weekly:50,   note:'$2,600/yr – shock absorber',phase:'always',
+    steps:[{from:'2026-07-01',weekly:40},{from:'2026-12-30',weekly:50}]},
+  {id:'renovation',  label:'Renovation Fund',    weekly:27.5,   note:'$1,560/yr for repairs',phase:'always',
+    steps:[{from:'2026-07-01',weekly:25},{from:'2026-12-30',weekly:30}]},
+  {id:'localholiday',label:'Local Holiday',      weekly:57.5,   note:'$7,500 every 2 years',phase:'always',
+    steps:[{from:'2026-07-01',weekly:50},{from:'2026-12-30',weekly:57.5}]},
   {id:'overseas4yr', label:'Overseas Holiday',   weekly:144,  note:'$30,000 every 4 yrs · from Jan 2028',phase:'from2028'},
 ];
 
@@ -383,33 +396,61 @@ function getPL(o){
   return`${s.toLocaleDateString('en-AU',{day:'numeric',month:'short'})} – ${e.toLocaleDateString('en-AU',{day:'numeric',month:'short'})}`;
 }
 function getCO(){return Math.max(0,Math.floor(Math.floor((new Date()-PS)/864e5)/14));}
-function fb(id){const c=CATS.find(x=>x.id===id);return c?c.weekly*2:0;}
+function weeklyAt(id,pk){
+  const c=CATS.find(x=>x.id===id);
+  if(!c)return 0;
+  if(!c.steps||!c.steps.length)return c.weekly;
+  // Find the latest step whose 'from' date is <= pk; fall back to base weekly
+  let rate=c.weekly;
+  c.steps.forEach(s=>{if(pk>=s.from)rate=s.weekly;});
+  return rate;
+}
+function fb(id,pk){
+  // pk optional for backward compatibility; if omitted, use current period
+  const p=pk||getPK(cur);
+  return weeklyAt(id,p)*2;
+}
 function ps(data,pk,id){return((data.periods||{})[pk]?.transactions||[]).filter(t=>t.catId===id).reduce((s,t)=>s+t.amount,0);}
 function carry(data,pk,id){
   // Iterate every fortnight from fn0 up to (but not including) pk
   // whether or not that fortnight has any transactions
+  // Each fortnight uses its OWN budget rate (stepped budgets change over time)
   let c=0;
   const pkOffset=getPO(pk);
   for(let i=0;i<pkOffset;i++){
     const k=getPK(i);
     const spent=((data.periods||{})[k]?.transactions||[]).filter(t=>t.catId===id).reduce((s,t)=>s+t.amount,0);
-    c+=fb(id)-spent;
+    c+=fb(id,k)-spent;
   }
   return c;
 }
-function avail(data,pk,id){return fb(id)+carry(data,pk,id)-ps(data,pk,id);}
+function avail(data,pk,id){return fb(id,pk)+carry(data,pk,id)-ps(data,pk,id);}
 function totalSpentAll(data,id){const spk=getPK(0);return Object.entries(data.periods||{}).filter(([k])=>k>=spk).reduce((s,[,p])=>s+((p.transactions||[]).filter(t=>t.catId===id).reduce((a,t)=>a+t.amount,0)),0);}
 function totalBudgetAll(id,viewOffset){
   // Budget accumulates one fortnightly allocation per fortnight
-  // Use the viewed period offset so navigating forward shows increasing totals
+  // Each fortnight may have a different rate (stepped budgets), so sum individually
   const offset=viewOffset!==undefined?viewOffset:getCO();
-  return (offset+1)*fb(id);
+  let total=0;
+  for(let i=0;i<=offset;i++){
+    total+=fb(id,getPK(i));
+  }
+  return total;
 }
-function cumSav(weekly,offset){
-  // Count fortnights accumulated up to and including viewed period
+function savWeeklyAt(sav,pk){
+  if(!sav.steps||!sav.steps.length)return sav.weekly;
+  let rate=sav.weekly;
+  sav.steps.forEach(st=>{if(pk>=st.from)rate=st.weekly;});
+  return rate;
+}
+function cumSav(sav,offset){
+  // Sum each fortnight's OWN rate (steps may change the weekly amount over time)
   // offset=0 (first fn) shows 1 allocation, offset=1 shows 2, etc.
   const fn=offset!==undefined?offset:Math.max(0,Math.floor((new Date()-TS)/864e5/14));
-  return (fn+1)*weekly*2;
+  let total=0;
+  for(let i=0;i<=fn;i++){
+    total+=savWeeklyAt(sav,getPK(i))*2;
+  }
+  return total;
 }
 function fm(n){return'$'+Math.abs(Math.round(n)).toLocaleString('en-AU');}
 function fm2(n){return'$'+Math.abs(n).toLocaleString('en-AU',{minimumFractionDigits:2,maximumFractionDigits:2});}
@@ -429,7 +470,7 @@ function sw(t){tab=t;render();}
 function shift(d){cur=Math.max(0,cur+d);render();}
 
 function mkSq(data,pk,cat,clickable){
-  const id=cat.id,bgt=fb(id),cr=carry(data,pk,id),sp=ps(data,pk,id);
+  const id=cat.id,bgt=fb(id,pk),cr=carry(data,pk,id),sp=ps(data,pk,id);
   const eff=bgt+cr,p=pct(sp,eff>0?eff:bgt),s=scCls(sp,eff>0?eff:bgt);
   const totSp=totalSpentAll(data,id),totBgt=totalBudgetAll(id,cur);
   const avail=totBgt-totSp; // true running balance: cumulative budget minus cumulative spent, all-time
@@ -445,13 +486,19 @@ function mkSq(data,pk,cat,clickable){
 }
 
 function mkSavSq(s,offset){
-  const cum=cumSav(s.weekly,offset);
-  const cumEl=`<div class="sv-cum">≈${fm(cum)} by fn ${offset!==undefined?offset+1:1}</div>`;
+  // Current fortnight rate (resolves any stepped change)
+  const pk=getPK(offset!==undefined?offset:getCO());
+  const curWeekly=savWeeklyAt(s,pk);
+  // Two fixed milestone totals: by 30 Dec 2026 and by 28 Dec 2027
+  const off2026=getPO('2026-12-30'),off2027=getPO('2027-12-28');
+  const cum2026=cumSav(s,off2026),cum2027=cumSav(s,off2027);
   const warnEl=s.warn?`<div class="sv-warn">⚠ ${s.warn}</div>`:'';
   return`<div class="sv-sq">
     <div><div class="sq-hd" style="margin-bottom:4px"><span class="sq-name">${s.label}</span></div>
-    <div class="sv-fnlbl">Per fortnight</div><div class="sv-fn">${fm(s.weekly*2)}</div></div>
-    <div><div class="sv-note">${s.note}</div>${cumEl}${warnEl}</div>
+    <div class="sv-fnlbl">Per fortnight</div><div class="sv-fn">${fm(curWeekly*2)}</div></div>
+    <div><div class="sv-note">${s.note}</div>
+    <div class="sv-cum">≈${fm(cum2026)} by 30 Dec 2026</div>
+    <div class="sv-cum">≈${fm(cum2027)} by 28 Dec 2027</div>${warnEl}</div>
   </div>`;
 }
 
@@ -471,7 +518,7 @@ function render(){
   let totAvail=0,totBgt=0,totSp=0,totCumSp=0,totCumBgt=0;
   tracked.forEach(c=>{
     totAvail+=avail(data,pk,c.id);
-    totBgt+=fb(c.id);
+    totBgt+=fb(c.id,pk);
     totSp+=ps(data,pk,c.id);
     totCumSp+=totalSpentAll(data,c.id);
     totCumBgt+=totalBudgetAll(c.id,cur);
@@ -485,17 +532,17 @@ function render(){
   let content='';
   if(tab==='snapshot'){
     const sq=tracked.map(c=>mkSq(data,pk,c,true)).join('');
-    content=`<div class="sum-row"><div class="scard"><div class="sc-lbl">Overall position</div><div class="sc-val ${totSC}">${totAvail<0?'<span style="color:var(--R)">▲ Deficit</span>':'<span style="color:var(--G)">▼ Surplus</span>'} ${fm(Math.abs(totAvail))}</div></div><div class="scard"><div class="sc-lbl">Cumulative budget</div><div class="sc-val">${fm(totCumBgt)}</div></div></div><div class="sum-row" style="margin-top:-6px"><div class="scard"><div class="sc-lbl">Spent this fn</div><div class="sc-val">${fm(totSp)}</div></div><div class="scard"><div class="sc-lbl">Cumulative spent</div><div class="sc-val">${fm(totCumSp)}</div></div></div>
+    content=`<div class="sum-row"><div class="scard"><div class="sc-lbl">Overall position</div><div class="sc-val ${totSC}">${totAvail<0?'<span style="color:var(--R)">▲ Deficit</span>':'<span style="color:var(--G)">▼ Surplus</span>'} ${fm(Math.abs(totAvail))}</div></div><div class="scard"><div class="sc-lbl">Spent this fn</div><div class="sc-val">${fm(totSp)}</div></div></div>
     <div class="sec"><div class="sec-hd">Essential spend this fortnight</div><div class="sq-grid">${sq}</div></div>`;
   }else if(tab==='fixed'){
     const sq=fixed.map(c=>mkSq(data,pk,c,true)).join('');
-    const fixTot=fixed.reduce((s,c)=>s+fb(c.id),0),fixSp=fixed.reduce((s,c)=>s+ps(data,pk,c.id),0);
+    const fixTot=fixed.reduce((s,c)=>s+fb(c.id,pk),0),fixSp=fixed.reduce((s,c)=>s+ps(data,pk,c.id),0);
     content=`<div class="sum-row"><div class="scard"><div class="sc-lbl">Budget this fn</div><div class="sc-val">${fm(fixTot)}</div></div><div class="scard"><div class="sc-lbl">Spent this fn</div><div class="sc-val">${fm(fixSp)}</div></div></div>
     <div class="sec">
     <div class="sq-grid">${sq}</div></div>`;
   }else if(tab==='savings'){
     const savTot=activeSav.reduce((a,s)=>a+s.weekly*2,0);
-    const savCum=activeSav.filter(s=>s.phase!=='from2028').reduce((a,s)=>a+cumSav(s.weekly),0);
+    const savCum=activeSav.filter(s=>s.phase!=='from2028').reduce((a,s)=>a+cumSav(s),0);
     const sq=activeSav.map(s=>mkSavSq(s,cur)).join('');
     content=`<div class="sum-row"><div class="scard"><div class="sc-lbl">Saving this fn</div><div class="sc-val" style="color:var(--B)">${fm(savTot)}</div></div><div class="scard"><div class="sc-lbl">Saved since Jun 3</div><div class="sc-val" style="color:var(--G)">≈${fm(savCum)}</div></div></div>
     <div class="sec"><div class="sq-grid">${sq}</div>
@@ -505,7 +552,7 @@ function render(){
     const rows=pkeys.length===0?`<p style="color:var(--tx2);font-size:14px;text-align:center;padding:24px 0">No history yet</p>`:pkeys.map(k=>{
       const idx=getPO(k),txs=(periods[k]?.transactions||[]).sort((a,b)=>b.date.localeCompare(a.date));
       const tot=txs.filter(t=>CATS.find(c=>c.id===t.catId&&c.tracked)).reduce((s,t)=>s+t.amount,0);
-      const bgt=tracked.reduce((s,c)=>s+fb(c.id),0);
+      const bgt=tracked.reduce((s,c)=>s+fb(c.id,pk),0);
       const cs=tot>bgt?'cov':tot>bgt*.85?'cwn':'cok';
       const isExp=expandedPeriods.has(k);
       const txRows=txs.map(t=>{const cat=CATS.find(c=>c.id===t.catId);return`<div class="htx-row"><div class="htx-cat">${cat?cat.icon:''} <span style="font-size:11px;color:var(--tx2)">${cat?cat.label:'?'}</span></div><div class="htx-desc">${t.description||t.catId}</div><div style="display:flex;align-items:center;gap:6px"><span class="htx-amt">-${fm2(t.amount)}</span><span style="font-size:10px;color:var(--tx3)">${fmtDate(t.date)}</span><button class="htx-del" onclick="openEdit('${k}','${t.id}',event)" style="background:var(--Bbg);color:var(--Btx);border-color:var(--B);margin-right:4px">Edit</button><button class="htx-del" onclick="histDelTx('${k}','${t.id}',event)">Del</button></div></div>`;}).join('');
@@ -517,7 +564,7 @@ function render(){
     if(!allPks.includes(getPK(getCO()))&&allPks.length>0)allPks.push(getPK(getCO()));
     const chartCats=CATS.filter(c=>c.tracked),selId=selChartCat||(chartCats[0]?.id||'groceries');
     const selCat=chartCats.find(c=>c.id===selId)||chartCats[0];
-    const pts=allPks.map(pk=>{const idx=getPO(pk),sp=selId==='all'?chartCats.reduce((s,c)=>s+ps(data,pk,c.id),0):ps(data,pk,selId),bgt=selId==='all'?chartCats.reduce((s,c)=>s+fb(c.id),0):fb(selId),lbl=getPL(idx).split(' – ')[0];return{pk,idx,sp,bgt,lbl};});
+    const pts=allPks.map(pk=>{const idx=getPO(pk),sp=selId==='all'?chartCats.reduce((s,c)=>s+ps(data,pk,c.id),0):ps(data,pk,selId),bgt=selId==='all'?chartCats.reduce((s,c)=>s+fb(c.id,pk),0):fb(selId,pk),lbl=getPL(idx).split(' – ')[0];return{pk,idx,sp,bgt,lbl};});
     const maxV=Math.max(...pts.map(p=>Math.max(p.sp,p.bgt)),1);
     const W=320,H=180,PT={t:16,r:12,b:48,l:52};
     const cW=W-PT.l-PT.r,cH=H-PT.t-PT.b;
@@ -559,7 +606,7 @@ function render(){
     <div style="background:var(--sf);border:1px solid var(--br);border-radius:var(--rad);padding:12px 14px">
       ${CATS.map(c=>`<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--br);font-size:13px"><span>${c.icon} ${c.label}${c.fixed?' <span style="color:var(--tx3);font-size:10px">fixed</span>':''}</span><span style="font-weight:700">${fm(c.weekly*2)}/fn</span></div>`).join('')}
     </div></div>
-    <div class="sec"><button onclick="confirmReset()" style="width:100%;padding:12px;border-radius:var(--rs);font-size:14px;font-weight:600;cursor:pointer;border:1px solid var(--R);background:var(--Rbg);color:var(--Rtx)">Reset to Factory</button></div><div style="text-align:center;padding:8px;font-size:10px;color:var(--tx3)">Version updated 20 Jun 2026 00:26</div>`;
+    <div class="sec"><button onclick="confirmReset()" style="width:100%;padding:12px;border-radius:var(--rs);font-size:14px;font-weight:600;cursor:pointer;border:1px solid var(--R);background:var(--Rbg);color:var(--Rtx)">Reset to Factory</button></div><div style="text-align:center;padding:8px;font-size:10px;color:var(--tx3)">Version updated 20 Jun 2026 03:12</div>`;
   }else if(tab==='guide'){
     content=`<div class="sec">
 
@@ -636,7 +683,7 @@ function render(){
     <div style="background:var(--sf);border:1px solid var(--br);border-radius:var(--rad);padding:12px 14px">
       ${CATS.map(c=>`<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--br);font-size:13px"><span>${c.icon} ${c.label}${c.fixed?' <span style="color:var(--tx3);font-size:10px">fixed</span>':''}</span><span style="font-weight:700">${fm(c.weekly*2)}/fn</span></div>`).join('')}
     </div></div>
-    <div class="sec"><button onclick="confirmReset()" style="width:100%;padding:12px;border-radius:var(--rs);font-size:14px;font-weight:600;cursor:pointer;border:1px solid var(--R);background:var(--Rbg);color:var(--Rtx)">Reset to Factory</button></div><div style="text-align:center;padding:8px;font-size:10px;color:var(--tx3)">Version updated 20 Jun 2026 00:26</div>`;
+    <div class="sec"><button onclick="confirmReset()" style="width:100%;padding:12px;border-radius:var(--rs);font-size:14px;font-weight:600;cursor:pointer;border:1px solid var(--R);background:var(--Rbg);color:var(--Rtx)">Reset to Factory</button></div><div style="text-align:center;padding:8px;font-size:10px;color:var(--tx3)">Version updated 20 Jun 2026 03:12</div>`;
   }else if(tab==='guide'){
     content=`<div class="sec">
 
@@ -735,7 +782,7 @@ function render(){
     <div style="background:var(--sf);border:1px solid var(--br);border-radius:var(--rad);padding:12px 14px">
       ${CATS.map(c=>`<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--br);font-size:13px"><span>${c.icon} ${c.label}${c.fixed?' <span style="color:var(--tx3);font-size:10px">fixed</span>':''}</span><span style="font-weight:700">${fm(c.weekly*2)}/fn</span></div>`).join('')}
     </div></div>
-    <div class="sec"><button onclick="confirmReset()" style="width:100%;padding:12px;border-radius:var(--rs);font-size:14px;font-weight:600;cursor:pointer;border:1px solid var(--R);background:var(--Rbg);color:var(--Rtx)">Reset to Factory</button></div><div style="text-align:center;padding:8px;font-size:10px;color:var(--tx3)">Version updated 20 Jun 2026 00:26</div>`;
+    <div class="sec"><button onclick="confirmReset()" style="width:100%;padding:12px;border-radius:var(--rs);font-size:14px;font-weight:600;cursor:pointer;border:1px solid var(--R);background:var(--Rbg);color:var(--Rtx)">Reset to Factory</button></div><div style="text-align:center;padding:8px;font-size:10px;color:var(--tx3)">Version updated 20 Jun 2026 03:12</div>`;
   }else if(tab==='guide'){
     content=`<div class="sec">
     <div class="isec" style="background:var(--Bbg);border-radius:var(--rad);padding:14px 16px;margin-bottom:20px">
@@ -908,7 +955,7 @@ function saveExp(){
 function openCat(id){
   const cat=CATS.find(c=>c.id===id),data=D(),pk=getPK(cur);
   const txs=((data.periods||{})[pk]?.transactions||[]).filter(t=>t.catId===id);
-  const bgt=fb(id),cr=carry(data,pk,id),sp=ps(data,pk,id),av=bgt+cr-sp;
+  const bgt=fb(id,pk),cr=carry(data,pk,id),sp=ps(data,pk,id),av=bgt+cr-sp;
   const s=av<0?'over':av<bgt*0.2?'warn':'ok';
   const totSp=totalSpentAll(data,id),totBgt=totalBudgetAll(id,cur);
   const txHtml=txs.length===0?`<p style="color:var(--tx2);font-size:14px;text-align:center;padding:16px 0">No transactions this fortnight</p>`:txs.sort((a,b)=>b.date.localeCompare(a.date)).map(t=>`<div class="tx-item"><div><div class="tx-d">${t.description}</div><div class="tx-m">${fmtDate(t.date)}</div></div><div style="display:flex;align-items:center;gap:6px"><span class="tx-a">-${fm2(t.amount)}</span><button class="tx-del" onclick="openEdit('${pk}','${t.id}')" style="background:var(--Bbg);color:var(--Btx);margin-right:4px;font-size:12px">Edit</button><button class="tx-del" onclick="delTx('${pk}','${t.id}')">Del</button></div></div>`).join('');
