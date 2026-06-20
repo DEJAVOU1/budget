@@ -564,7 +564,15 @@ function render(){
     if(!allPks.includes(getPK(getCO()))&&allPks.length>0)allPks.push(getPK(getCO()));
     const chartCats=CATS.filter(c=>c.tracked),selId=selChartCat||(chartCats[0]?.id||'groceries');
     const selCat=chartCats.find(c=>c.id===selId)||chartCats[0];
-    const pts=allPks.map(pk=>{const idx=getPO(pk),sp=selId==='all'?chartCats.reduce((s,c)=>s+ps(data,pk,c.id),0):ps(data,pk,selId),bgt=selId==='all'?chartCats.reduce((s,c)=>s+fb(c.id,pk),0):fb(selId,pk),lbl=getPL(idx).split(' – ')[0];return{pk,idx,sp,bgt,lbl};});
+    let runSp=0,runBgt=0;
+    const pts=allPks.map(pk=>{
+      const idx=getPO(pk);
+      const fnSp=selId==='all'?chartCats.reduce((s,c)=>s+ps(data,pk,c.id),0):ps(data,pk,selId);
+      const fnBgt=selId==='all'?chartCats.reduce((s,c)=>s+fb(c.id,pk),0):fb(selId,pk);
+      runSp+=fnSp;runBgt+=fnBgt;
+      const lbl=getPL(idx).split(' – ')[0];
+      return{pk,idx,sp:runSp,bgt:runBgt,lbl};
+    });
     const maxV=Math.max(...pts.map(p=>Math.max(p.sp,p.bgt)),1);
     const W=320,H=180,PT={t:16,r:12,b:48,l:52};
     const cW=W-PT.l-PT.r,cH=H-PT.t-PT.b;
@@ -575,13 +583,13 @@ function render(){
     const yTicks=[0,.25,.5,.75,1].map(f=>({v:Math.round(maxV*f),y:y(maxV*f)}));
     const opts='<option value="all"'+(selId==='all'?' selected':'')+'>📊 All Categories Combined</option>'+chartCats.map(c=>`<option value="${c.id}"${c.id===selId?' selected':''}>${c.icon} ${c.label}</option>`).join('');
     const svgC=pts.length===0?`<div style="display:flex;align-items:center;justify-content:center;height:180px;color:var(--tx3);font-size:14px">No data yet</div>`:`<svg viewBox="0 0 ${W} ${H}" style="width:100%;overflow:visible;display:block">${yTicks.map(t=>`<line x1="${PT.l}" y1="${t.y.toFixed(1)}" x2="${W-PT.r}" y2="${t.y.toFixed(1)}" stroke="var(--br2)" stroke-width="1"/><text x="${PT.l-6}" y="${(t.y+4).toFixed(1)}" text-anchor="end" font-size="9" fill="var(--tx3)">$${t.v>=1000?(t.v/1000).toFixed(1)+'k':t.v}</text>`).join('')}${pts.map((l,i)=>`<text x="${x(i).toFixed(1)}" y="${(H-PT.b+14).toFixed(1)}" text-anchor="middle" font-size="8" fill="var(--tx3)" transform="rotate(-35,${x(i).toFixed(1)},${(H-PT.b+14).toFixed(1)})">${l.lbl}</text>`).join('')}<path d="${bPath}" fill="none" stroke="var(--B)" stroke-width="2" stroke-dasharray="5,3" opacity=".7"/><path d="${sPath}" fill="none" stroke="${pts.some(p=>p.sp>p.bgt)?'var(--R)':'var(--G)'}" stroke-width="2.5"/>${pts.map((p,i)=>`<circle cx="${x(i).toFixed(1)}" cy="${y(p.sp).toFixed(1)}" r="4" fill="${p.sp>p.bgt?'var(--R)':'var(--G)'}"/>`).join('')}</svg>`;
-    content=`<div class="sec"><div class="sec-hd">Budgeted vs actual by fortnight</div>
+    content=`<div class="sec"><div class="sec-hd">Budgeted vs actual to date</div>
     <div style="background:var(--sf);border:1px solid var(--br);border-radius:var(--rad);padding:14px 14px 10px;margin-bottom:12px">
       <div class="fg" style="margin-bottom:12px"><label class="fl">Category</label><select class="fi" onchange="selChartCat=this.value;render()">${opts}</select></div>
       ${svgC}
       <div style="display:flex;gap:16px;margin-top:10px;padding-top:8px;border-top:1px solid var(--br)"><div style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--tx2)"><svg width="20" height="4"><path d="M0,2 L20,2" stroke="var(--B)" stroke-width="2" stroke-dasharray="4,2"/></svg> Budget</div><div style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--tx2)"><svg width="20" height="4"><line x1="0" y1="2" x2="20" y2="2" stroke="var(--G)" stroke-width="2.5"/></svg> Actual</div></div>
     </div>
-    <div style="background:var(--sf);border:1px solid var(--br);border-radius:var(--rad);padding:12px 14px">${pts.length===0?'<p style="font-size:13px;color:var(--tx3)">No data yet</p>':pts.map(p=>{const cs=p.sp>p.bgt?'cov':p.sp>p.bgt*.85?'cwn':'cok';return`<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--br);font-size:13px"><span style="color:var(--tx2)">${getPL(p.idx)}</span><span class="chip ${cs}">${fm(p.sp)} <span style="font-weight:400;opacity:.7">of ${fm(p.bgt)}</span></span></div>`;}).join('')}</div>
+    <div style="background:var(--sf);border:1px solid var(--br);border-radius:var(--rad);padding:12px 14px">${pts.length===0?'<p style="font-size:13px;color:var(--tx3)">No data yet</p>':pts.map(p=>{const cs=p.sp>p.bgt?'cov':p.sp>p.bgt*.85?'cwn':'cok';return`<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--br);font-size:13px"><span style="color:var(--tx2)">As at ${getPL(p.idx).split(' – ')[1]}</span><span class="chip ${cs}">${fm(p.sp)} <span style="font-weight:400;opacity:.7">of ${fm(p.bgt)}</span></span></div>`;}).join('')}</div>
     </div>`;
   }else if(tab==='settings'){
     const syncLabel=syncConfigured?cfg.gistId?`Connected (Gist: ${cfg.gistId.slice(-8)})`:`Connected`:'Not set up';
@@ -606,7 +614,7 @@ function render(){
     <div style="background:var(--sf);border:1px solid var(--br);border-radius:var(--rad);padding:12px 14px">
       ${CATS.map(c=>`<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--br);font-size:13px"><span>${c.icon} ${c.label}${c.fixed?' <span style="color:var(--tx3);font-size:10px">fixed</span>':''}</span><span style="font-weight:700">${fm(c.weekly*2)}/fn</span></div>`).join('')}
     </div></div>
-    <div class="sec"><button onclick="confirmReset()" style="width:100%;padding:12px;border-radius:var(--rs);font-size:14px;font-weight:600;cursor:pointer;border:1px solid var(--R);background:var(--Rbg);color:var(--Rtx)">Reset to Factory</button></div><div style="text-align:center;padding:8px;font-size:10px;color:var(--tx3)">Version updated 20 Jun 2026 03:12</div>`;
+    <div class="sec"><button onclick="confirmReset()" style="width:100%;padding:12px;border-radius:var(--rs);font-size:14px;font-weight:600;cursor:pointer;border:1px solid var(--R);background:var(--Rbg);color:var(--Rtx)">Reset to Factory</button></div><div style="text-align:center;padding:8px;font-size:10px;color:var(--tx3)">Version updated 20 Jun 2026 03:30</div>`;
   }else if(tab==='guide'){
     content=`<div class="sec">
 
@@ -683,7 +691,7 @@ function render(){
     <div style="background:var(--sf);border:1px solid var(--br);border-radius:var(--rad);padding:12px 14px">
       ${CATS.map(c=>`<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--br);font-size:13px"><span>${c.icon} ${c.label}${c.fixed?' <span style="color:var(--tx3);font-size:10px">fixed</span>':''}</span><span style="font-weight:700">${fm(c.weekly*2)}/fn</span></div>`).join('')}
     </div></div>
-    <div class="sec"><button onclick="confirmReset()" style="width:100%;padding:12px;border-radius:var(--rs);font-size:14px;font-weight:600;cursor:pointer;border:1px solid var(--R);background:var(--Rbg);color:var(--Rtx)">Reset to Factory</button></div><div style="text-align:center;padding:8px;font-size:10px;color:var(--tx3)">Version updated 20 Jun 2026 03:12</div>`;
+    <div class="sec"><button onclick="confirmReset()" style="width:100%;padding:12px;border-radius:var(--rs);font-size:14px;font-weight:600;cursor:pointer;border:1px solid var(--R);background:var(--Rbg);color:var(--Rtx)">Reset to Factory</button></div><div style="text-align:center;padding:8px;font-size:10px;color:var(--tx3)">Version updated 20 Jun 2026 03:30</div>`;
   }else if(tab==='guide'){
     content=`<div class="sec">
 
@@ -782,7 +790,7 @@ function render(){
     <div style="background:var(--sf);border:1px solid var(--br);border-radius:var(--rad);padding:12px 14px">
       ${CATS.map(c=>`<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--br);font-size:13px"><span>${c.icon} ${c.label}${c.fixed?' <span style="color:var(--tx3);font-size:10px">fixed</span>':''}</span><span style="font-weight:700">${fm(c.weekly*2)}/fn</span></div>`).join('')}
     </div></div>
-    <div class="sec"><button onclick="confirmReset()" style="width:100%;padding:12px;border-radius:var(--rs);font-size:14px;font-weight:600;cursor:pointer;border:1px solid var(--R);background:var(--Rbg);color:var(--Rtx)">Reset to Factory</button></div><div style="text-align:center;padding:8px;font-size:10px;color:var(--tx3)">Version updated 20 Jun 2026 03:12</div>`;
+    <div class="sec"><button onclick="confirmReset()" style="width:100%;padding:12px;border-radius:var(--rs);font-size:14px;font-weight:600;cursor:pointer;border:1px solid var(--R);background:var(--Rbg);color:var(--Rtx)">Reset to Factory</button></div><div style="text-align:center;padding:8px;font-size:10px;color:var(--tx3)">Version updated 20 Jun 2026 03:30</div>`;
   }else if(tab==='guide'){
     content=`<div class="sec">
     <div class="isec" style="background:var(--Bbg);border-radius:var(--rad);padding:14px 16px;margin-bottom:20px">
