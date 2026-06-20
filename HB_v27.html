@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Family Budget</title>
 <style>
-:root{--bg:#F7F5F0;--sf:#FFF;--sf2:#F0EDE6;--tx:#1A1917;--tx2:#6B6760;--tx3:#9B9890;--br:rgba(0,0,0,0.08);--br2:rgba(0,0,0,0.15);--G:#1D9E75;--Gbg:#E1F5EE;--Gtx:#085041;--A:#BA7517;--Abg:#FAEEDA;--Atx:#633806;--R:#A32D2D;--Rbg:#FCEBEB;--Rtx:#501313;--B:#185FA5;--Bbg:#E6F1FB;--Btx:#042C53;--rad:13px;--rs:9px}
-@media(prefers-color-scheme:dark){:root{--bg:#1A1917;--sf:#242320;--sf2:#2C2C2A;--tx:#F1EFE8;--tx2:#9B9890;--tx3:#5A5956;--br:rgba(255,255,255,0.07);--br2:rgba(255,255,255,0.13);--Gbg:#04342C;--Gtx:#9FE1CB;--Abg:#412402;--Atx:#FAC775;--Rbg:#501313;--Rtx:#F7C1C1;--Bbg:#042C53;--Btx:#B5D4F4}}
+:root{--bg:#F7F5F0;--sf:#FFF;--sf2:#F0EDE6;--tx:#1A1917;--tx2:#6B6760;--tx3:#9B9890;--br:rgba(0,0,0,0.08);--br2:rgba(0,0,0,0.15);--G:#1D9E75;--Gbg:#E1F5EE;--Gtx:#085041;--A:#FF8C00;--Abg:#FAEEDA;--Atx:#633806;--R:#A32D2D;--Rbg:#FCEBEB;--Rtx:#501313;--B:#185FA5;--Bbg:#E6F1FB;--Btx:#042C53;--rad:13px;--rs:9px}
+@media(prefers-color-scheme:dark){:root{--bg:#1A1917;--sf:#242320;--sf2:#2C2C2A;--tx:#F1EFE8;--tx2:#9B9890;--tx3:#5A5956;--br:rgba(255,255,255,0.07);--br2:rgba(255,255,255,0.13);--Gbg:#04342C;--Gtx:#9FE1CB;--Abg:#412402;--Atx:#FFB347;--Rbg:#501313;--Rtx:#F7C1C1;--Bbg:#042C53;--Btx:#B5D4F4}}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 body{background:var(--bg);color:var(--tx);font-family:-apple-system,'SF Pro Text','Segoe UI',sans-serif;min-height:100vh;padding-bottom:90px;padding-top:185px}
 #hdr{position:fixed;top:0;left:0;right:0;z-index:100;background:var(--bg)}.hdr{padding:10px 16px 8px;position:-webkit-sticky;position:sticky;top:0;z-index:50;background:var(--bg)}
@@ -431,13 +431,15 @@ function shift(d){cur=Math.max(0,cur+d);render();}
 function mkSq(data,pk,cat,clickable){
   const id=cat.id,bgt=fb(id),cr=carry(data,pk,id),sp=ps(data,pk,id);
   const eff=bgt+cr,p=pct(sp,eff>0?eff:bgt),s=scCls(sp,eff>0?eff:bgt);
-  let carryHtml=cr<-0.5?`<div class="sq-carry neg">▲ ${fm(Math.abs(cr))} <span style='color:var(--R)'>deficit</span></div>`:cr>0.5?`<div class="sq-carry pos">▼ ${fm(cr)} <span style='color:var(--G)'>surplus</span></div>`:`<div class="sq-carry none">No carry</div>`;
   const totSp=totalSpentAll(data,id),totBgt=totalBudgetAll(id,cur);
+  const avail=totBgt-totSp; // true running balance: cumulative budget minus cumulative spent, all-time
+  const availCls=avail<0?'neg':'pos';
+  const availLbl=avail<0?'▲ over budget':'▼ available';
   const ca=clickable?`onclick="openCat('${id}')" `:'';
   return`<div class="sq ${s}" ${ca}>
     <div><div class="sq-hd"><span class="sq-name">${cat.label}</span><span class="sq-icon">${cat.icon}</span></div>
-    <div class="sq-main"><span class="spent">${fm(sp)}</span><span class="of"> of </span><span class="budget">${fm(bgt)}</span></div></div>
-    <div>${carryHtml}<div class="sq-overall">Overall: ${fm(totSp)} of ${fm(totBgt)}</div>
+    <div class="sq-main"><span class="${availCls==='neg'?'spent':'spent'}" style="color:var(${avail<0?'--R':'--G'})">${fm(Math.abs(avail))}</span><span class="of"> ${availLbl}</span></div></div>
+    <div><div class="sq-overall">This fn: ${fm(sp)} of ${fm(bgt)} &nbsp;|&nbsp; Overall: ${fm(totSp)} of ${fm(totBgt)}</div>
     <div class="sq-bar"><div class="sq-fill ${s}" style="width:${p}%"></div></div></div>
   </div>`;
 }
@@ -557,7 +559,7 @@ function render(){
     <div style="background:var(--sf);border:1px solid var(--br);border-radius:var(--rad);padding:12px 14px">
       ${CATS.map(c=>`<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--br);font-size:13px"><span>${c.icon} ${c.label}${c.fixed?' <span style="color:var(--tx3);font-size:10px">fixed</span>':''}</span><span style="font-weight:700">${fm(c.weekly*2)}/fn</span></div>`).join('')}
     </div></div>
-    <div class="sec"><button onclick="confirmReset()" style="width:100%;padding:12px;border-radius:var(--rs);font-size:14px;font-weight:600;cursor:pointer;border:1px solid var(--R);background:var(--Rbg);color:var(--Rtx)">Reset to Factory</button></div><div style="text-align:center;padding:8px;font-size:10px;color:var(--tx3)">Version updated 13 Jun 2026 03:18</div>`;
+    <div class="sec"><button onclick="confirmReset()" style="width:100%;padding:12px;border-radius:var(--rs);font-size:14px;font-weight:600;cursor:pointer;border:1px solid var(--R);background:var(--Rbg);color:var(--Rtx)">Reset to Factory</button></div><div style="text-align:center;padding:8px;font-size:10px;color:var(--tx3)">Version updated 20 Jun 2026 00:26</div>`;
   }else if(tab==='guide'){
     content=`<div class="sec">
 
@@ -634,7 +636,7 @@ function render(){
     <div style="background:var(--sf);border:1px solid var(--br);border-radius:var(--rad);padding:12px 14px">
       ${CATS.map(c=>`<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--br);font-size:13px"><span>${c.icon} ${c.label}${c.fixed?' <span style="color:var(--tx3);font-size:10px">fixed</span>':''}</span><span style="font-weight:700">${fm(c.weekly*2)}/fn</span></div>`).join('')}
     </div></div>
-    <div class="sec"><button onclick="confirmReset()" style="width:100%;padding:12px;border-radius:var(--rs);font-size:14px;font-weight:600;cursor:pointer;border:1px solid var(--R);background:var(--Rbg);color:var(--Rtx)">Reset to Factory</button></div><div style="text-align:center;padding:8px;font-size:10px;color:var(--tx3)">Version updated 13 Jun 2026 03:18</div>`;
+    <div class="sec"><button onclick="confirmReset()" style="width:100%;padding:12px;border-radius:var(--rs);font-size:14px;font-weight:600;cursor:pointer;border:1px solid var(--R);background:var(--Rbg);color:var(--Rtx)">Reset to Factory</button></div><div style="text-align:center;padding:8px;font-size:10px;color:var(--tx3)">Version updated 20 Jun 2026 00:26</div>`;
   }else if(tab==='guide'){
     content=`<div class="sec">
 
@@ -733,7 +735,7 @@ function render(){
     <div style="background:var(--sf);border:1px solid var(--br);border-radius:var(--rad);padding:12px 14px">
       ${CATS.map(c=>`<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--br);font-size:13px"><span>${c.icon} ${c.label}${c.fixed?' <span style="color:var(--tx3);font-size:10px">fixed</span>':''}</span><span style="font-weight:700">${fm(c.weekly*2)}/fn</span></div>`).join('')}
     </div></div>
-    <div class="sec"><button onclick="confirmReset()" style="width:100%;padding:12px;border-radius:var(--rs);font-size:14px;font-weight:600;cursor:pointer;border:1px solid var(--R);background:var(--Rbg);color:var(--Rtx)">Reset to Factory</button></div><div style="text-align:center;padding:8px;font-size:10px;color:var(--tx3)">Version updated 13 Jun 2026 03:18</div>`;
+    <div class="sec"><button onclick="confirmReset()" style="width:100%;padding:12px;border-radius:var(--rs);font-size:14px;font-weight:600;cursor:pointer;border:1px solid var(--R);background:var(--Rbg);color:var(--Rtx)">Reset to Factory</button></div><div style="text-align:center;padding:8px;font-size:10px;color:var(--tx3)">Version updated 20 Jun 2026 00:26</div>`;
   }else if(tab==='guide'){
     content=`<div class="sec">
     <div class="isec" style="background:var(--Bbg);border-radius:var(--rad);padding:14px 16px;margin-bottom:20px">
