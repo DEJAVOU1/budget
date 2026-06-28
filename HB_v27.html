@@ -170,9 +170,9 @@ const TS=new Date(2026,5,3);// Jun 3 local midnight
 
 const CATS=[
   {id:'groceries',  label:'Groceries',        icon:'🛒',weekly:550,  tracked:true,
-    steps:[{from:'2026-07-01',weekly:515},{from:'2026-12-30',weekly:530}]},
+    steps:[{from:'2026-07-01',weekly:525},{from:'2026-12-30',weekly:540}]},
   {id:'eatingout',  label:'Eating Out',        icon:'🍽',weekly:70,   tracked:true,
-    steps:[{from:'2026-07-01',weekly:60}]},
+    steps:[{from:'2026-07-01',weekly:75}]},
   {id:'alcohol',    label:'Alcohol',           icon:'🍷',weekly:35,   tracked:true},
   {id:'gifts',      label:'Gifts',             icon:'🎁',weekly:35,   tracked:true,
     steps:[{from:'2026-07-01',weekly:125},{from:'2026-12-30',weekly:62.5}]},
@@ -181,6 +181,7 @@ const CATS=[
   {id:'beauty',     label:'Beauty',            icon:'💅',weekly:70,   tracked:true,
     steps:[{from:'2026-07-01',weekly:65}]},
   {id:'house',      label:'House Purchases',   icon:'🏠',weekly:50,   tracked:true},
+  {id:'houserepairs',label:'House Repairs',     icon:'🔧',weekly:50,   tracked:true},
   {id:'entertain',  label:'Going Out',         icon:'🎭',weekly:25,   tracked:true,
     steps:[{from:'2026-07-01',weekly:20}]},
   {id:'uber',       label:'Uber / Taxi',       icon:'🚗',weekly:25,   tracked:true},
@@ -199,21 +200,22 @@ const CATS=[
   {id:'accountant', label:'Tax Accountant',    icon:'📋',weekly:4,    tracked:false,fixed:true},
   {id:'pestcontrol',label:'Pest Control',      icon:'🪲',weekly:4,    tracked:false,fixed:true},
   {id:'unionfees',  label:'Union / Donations', icon:'🤝',weekly:23,   tracked:false,fixed:true},
-  {id:'medical',    label:'Medical',           icon:'🏥',weekly:100,  tracked:true},
+  {id:'medical',    label:'Medical',           icon:'🏥',weekly:100,  tracked:true,
+    steps:[{from:'2026-07-01',weekly:250}]},
   {id:'bankfees',   label:'Bank Fees',         icon:'🏦',weekly:4,    tracked:false,fixed:true},
 ];
 
 const SAVINGS=[
-  {id:'overseas2027',label:'Xmas 2027 OS Trip', weekly:100,  note:'Target ~$8,200 by Dec 2027',phase:'until2027',
-    steps:[{from:'2026-07-01',weekly:92.5},{from:'2026-12-30',weekly:107.5}]},
-  {id:'inheritance', label:"Kids' Shares",       weekly:140,  note:'Target $7,280/yr · into investment shares',phase:'always'},
+  {id:'overseas2027',label:'Overseas Trip (one-off, active now)', weekly:100,  note:'Target ~$8,200 by Dec 2027',phase:'until2027',
+    steps:[{from:'2026-07-01',weekly:148.5},{from:'2026-12-30',weekly:163.5}]},
+  {id:'inheritance', label:"Kids' Shares",       weekly:190,  note:'Target $7,280/yr · into investment shares',phase:'always'},
   {id:'emergency',   label:'Emergency Fund',     weekly:50,   note:'$2,600/yr – shock absorber',phase:'always',
     steps:[{from:'2026-07-01',weekly:40},{from:'2026-12-30',weekly:50}]},
   {id:'renovation',  label:'Renovation Fund',    weekly:27.5,   note:'$1,560/yr for repairs',phase:'always',
     steps:[{from:'2026-07-01',weekly:25},{from:'2026-12-30',weekly:30}]},
   {id:'localholiday',label:'Local Holiday',      weekly:57.5,   note:'$7,500 every 2 years',phase:'always',
-    steps:[{from:'2026-07-01',weekly:50},{from:'2026-12-30',weekly:57.5}]},
-  {id:'overseas4yr', label:'Overseas Holiday',   weekly:144,  note:'$30,000 every 4 yrs · from Jan 2028',phase:'from2028'},
+    steps:[{from:'2026-07-01',weekly:67.59},{from:'2026-12-30',weekly:75.09}]},
+  {id:'overseas4yr', label:'Overseas Trip (recurring, starts Jan 2028)', weekly:144,  note:'$30,000 every 4 yrs · not yet active',phase:'from2028'},
 ];
 
 const SEED={"periods":{}};
@@ -476,11 +478,13 @@ function mkSq(data,pk,cat,clickable){
   const avail=totBgt-totSp; // true running balance: cumulative budget minus cumulative spent, all-time
   const availCls=avail<0?'neg':'pos';
   const availLbl=avail<0?'▲ over budget':'▼ available';
+  const annual=weeklyAt(id,pk)*52;
   const ca=clickable?`onclick="openCat('${id}')" `:'';
   return`<div class="sq ${s}" ${ca}>
     <div><div class="sq-hd"><span class="sq-name">${cat.label}</span><span class="sq-icon">${cat.icon}</span></div>
     <div class="sq-main"><span class="${availCls==='neg'?'spent':'spent'}" style="color:var(${avail<0?'--R':'--G'})">${fm(Math.abs(avail))}</span><span class="of"> ${availLbl}</span></div></div>
     <div><div class="sq-overall">This fn: ${fm(sp)} of ${fm(bgt)} &nbsp;|&nbsp; Overall: ${fm(totSp)} of ${fm(totBgt)}</div>
+    <div class="sq-overall" style="opacity:.7">Annual allocation: ${fm(annual)}/yr</div>
     <div class="sq-bar"><div class="sq-fill ${s}" style="width:${p}%"></div></div></div>
   </div>`;
 }
@@ -489,6 +493,7 @@ function mkSavSq(s,offset){
   // Current fortnight rate (resolves any stepped change)
   const pk=getPK(offset!==undefined?offset:getCO());
   const curWeekly=savWeeklyAt(s,pk);
+  const annual=curWeekly*52;
   // Two fixed milestone totals: by 30 Dec 2026 and by 28 Dec 2027
   const off2026=getPO('2026-12-30'),off2027=getPO('2027-12-28');
   const cum2026=cumSav(s,off2026),cum2027=cumSav(s,off2027);
@@ -497,6 +502,7 @@ function mkSavSq(s,offset){
     <div><div class="sq-hd" style="margin-bottom:4px"><span class="sq-name">${s.label}</span></div>
     <div class="sv-fnlbl">Per fortnight</div><div class="sv-fn">${fm(curWeekly*2)}</div></div>
     <div><div class="sv-note">${s.note}</div>
+    <div class="sv-cum" style="opacity:.7">Annual allocation: ${fm(annual)}/yr</div>
     <div class="sv-cum">≈${fm(cum2026)} by 30 Dec 2026</div>
     <div class="sv-cum">≈${fm(cum2027)} by 28 Dec 2027</div>${warnEl}</div>
   </div>`;
@@ -514,7 +520,7 @@ function fmtDateInput(el){
 function render(){
   const data=D(),pk=getPK(cur),isNow=cur===getCO();
   const pdDate=new Date(pk+'T12:00:00');
-  const tracked=CATS.filter(c=>c.tracked),fixed=CATS.filter(c=>c.fixed);
+  const tracked=CATS.filter(c=>c.tracked).sort((a,b)=>weeklyAt(b.id,pk)-weeklyAt(a.id,pk)),fixed=CATS.filter(c=>c.fixed).sort((a,b)=>weeklyAt(b.id,pk)-weeklyAt(a.id,pk));
   let totAvail=0,totBgt=0,totSp=0,totCumSp=0,totCumBgt=0;
   tracked.forEach(c=>{
     totAvail+=avail(data,pk,c.id);
@@ -525,7 +531,7 @@ function render(){
   });
   const totSC=totAvail<0?'over':totAvail<totBgt*0.15?'warn':'ok';
   const pdDate2=new Date(pk+'T12:00:00');
-  const activeSav=SAVINGS.filter(s=>s.phase==='always'||(s.phase==='until2027'&&pdDate2<=new Date('2027-12-31T00:00:00'))||(s.phase==='from2028'&&pdDate2>=new Date('2028-01-01T00:00:00')));
+  const activeSav=SAVINGS.filter(s=>s.phase==='always'||(s.phase==='until2027'&&pdDate2<=new Date('2027-12-31T00:00:00'))||(s.phase==='from2028'&&pdDate2>=new Date('2028-01-01T00:00:00'))).sort((a,b)=>savWeeklyAt(b,pk)-savWeeklyAt(a,pk));
   const cfg=getSyncCfg();
   const syncConfigured=!!(cfg.token&&cfg.gistId);
 
@@ -614,7 +620,7 @@ function render(){
     <div style="background:var(--sf);border:1px solid var(--br);border-radius:var(--rad);padding:12px 14px">
       ${CATS.map(c=>`<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--br);font-size:13px"><span>${c.icon} ${c.label}${c.fixed?' <span style="color:var(--tx3);font-size:10px">fixed</span>':''}</span><span style="font-weight:700">${fm(c.weekly*2)}/fn</span></div>`).join('')}
     </div></div>
-    <div class="sec"><button onclick="confirmReset()" style="width:100%;padding:12px;border-radius:var(--rs);font-size:14px;font-weight:600;cursor:pointer;border:1px solid var(--R);background:var(--Rbg);color:var(--Rtx)">Reset to Factory</button></div><div style="text-align:center;padding:8px;font-size:10px;color:var(--tx3)">Version updated 20 Jun 2026 03:30</div>`;
+    <div class="sec"><button onclick="confirmReset()" style="width:100%;padding:12px;border-radius:var(--rs);font-size:14px;font-weight:600;cursor:pointer;border:1px solid var(--R);background:var(--Rbg);color:var(--Rtx)">Reset to Factory</button></div><div style="text-align:center;padding:8px;font-size:10px;color:var(--tx3)">Version updated 28 Jun 2026 14:42</div>`;
   }else if(tab==='guide'){
     content=`<div class="sec">
 
@@ -691,7 +697,7 @@ function render(){
     <div style="background:var(--sf);border:1px solid var(--br);border-radius:var(--rad);padding:12px 14px">
       ${CATS.map(c=>`<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--br);font-size:13px"><span>${c.icon} ${c.label}${c.fixed?' <span style="color:var(--tx3);font-size:10px">fixed</span>':''}</span><span style="font-weight:700">${fm(c.weekly*2)}/fn</span></div>`).join('')}
     </div></div>
-    <div class="sec"><button onclick="confirmReset()" style="width:100%;padding:12px;border-radius:var(--rs);font-size:14px;font-weight:600;cursor:pointer;border:1px solid var(--R);background:var(--Rbg);color:var(--Rtx)">Reset to Factory</button></div><div style="text-align:center;padding:8px;font-size:10px;color:var(--tx3)">Version updated 20 Jun 2026 03:30</div>`;
+    <div class="sec"><button onclick="confirmReset()" style="width:100%;padding:12px;border-radius:var(--rs);font-size:14px;font-weight:600;cursor:pointer;border:1px solid var(--R);background:var(--Rbg);color:var(--Rtx)">Reset to Factory</button></div><div style="text-align:center;padding:8px;font-size:10px;color:var(--tx3)">Version updated 28 Jun 2026 14:42</div>`;
   }else if(tab==='guide'){
     content=`<div class="sec">
 
@@ -790,7 +796,7 @@ function render(){
     <div style="background:var(--sf);border:1px solid var(--br);border-radius:var(--rad);padding:12px 14px">
       ${CATS.map(c=>`<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--br);font-size:13px"><span>${c.icon} ${c.label}${c.fixed?' <span style="color:var(--tx3);font-size:10px">fixed</span>':''}</span><span style="font-weight:700">${fm(c.weekly*2)}/fn</span></div>`).join('')}
     </div></div>
-    <div class="sec"><button onclick="confirmReset()" style="width:100%;padding:12px;border-radius:var(--rs);font-size:14px;font-weight:600;cursor:pointer;border:1px solid var(--R);background:var(--Rbg);color:var(--Rtx)">Reset to Factory</button></div><div style="text-align:center;padding:8px;font-size:10px;color:var(--tx3)">Version updated 20 Jun 2026 03:30</div>`;
+    <div class="sec"><button onclick="confirmReset()" style="width:100%;padding:12px;border-radius:var(--rs);font-size:14px;font-weight:600;cursor:pointer;border:1px solid var(--R);background:var(--Rbg);color:var(--Rtx)">Reset to Factory</button></div><div style="text-align:center;padding:8px;font-size:10px;color:var(--tx3)">Version updated 28 Jun 2026 14:42</div>`;
   }else if(tab==='guide'){
     content=`<div class="sec">
     <div class="isec" style="background:var(--Bbg);border-radius:var(--rad);padding:14px 16px;margin-bottom:20px">
