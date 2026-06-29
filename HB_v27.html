@@ -491,9 +491,12 @@ function mkSq(data,pk,cat,clickable){
 
 function mkSavSq(s,offset){
   // Current fortnight rate (resolves any stepped change)
-  const pk=getPK(offset!==undefined?offset:getCO());
+  const viewOffset=offset!==undefined?offset:getCO();
+  const pk=getPK(viewOffset);
   const curWeekly=savWeeklyAt(s,pk);
   const annual=curWeekly*52;
+  // Saved to date: cumulative total up to and including the fortnight being viewed
+  const savedToDate=cumSav(s,viewOffset);
   // Two fixed milestone totals: by 30 Dec 2026 and by 28 Dec 2027
   const off2026=getPO('2026-12-30'),off2027=getPO('2027-12-28');
   const cum2026=cumSav(s,off2026),cum2027=cumSav(s,off2027);
@@ -503,6 +506,7 @@ function mkSavSq(s,offset){
     <div class="sv-fnlbl">Per fortnight</div><div class="sv-fn">${fm(curWeekly*2)}</div></div>
     <div><div class="sv-note">${s.note}</div>
     <div class="sv-cum" style="opacity:.7">Annual allocation: ${fm(annual)}/yr</div>
+    <div class="sv-cum" style="color:var(--G);font-weight:600">Saved to date: ${fm(savedToDate)}</div>
     <div class="sv-cum">≈${fm(cum2026)} by 30/12/26</div>
     <div class="sv-cum">≈${fm(cum2027)} by 28/12/27</div>${warnEl}</div>
   </div>`;
@@ -620,13 +624,13 @@ function render(){
     <div style="background:var(--sf);border:1px solid var(--br);border-radius:var(--rad);padding:12px 14px">
       ${CATS.map(c=>`<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--br);font-size:13px"><span>${c.icon} ${c.label}${c.fixed?' <span style="color:var(--tx3);font-size:10px">fixed</span>':''}</span><span style="font-weight:700">${fm(c.weekly*2)}/fn</span></div>`).join('')}
     </div></div>
-    <div class="sec"><button onclick="confirmReset()" style="width:100%;padding:12px;border-radius:var(--rs);font-size:14px;font-weight:600;cursor:pointer;border:1px solid var(--R);background:var(--Rbg);color:var(--Rtx)">Reset to Factory</button></div><div style="text-align:center;padding:8px;font-size:10px;color:var(--tx3)">Version updated 29 Jun 2026 03:31</div>`;
+    <div class="sec"><button onclick="confirmReset()" style="width:100%;padding:12px;border-radius:var(--rs);font-size:14px;font-weight:600;cursor:pointer;border:1px solid var(--R);background:var(--Rbg);color:var(--Rtx)">Reset to Factory</button></div><div style="text-align:center;padding:8px;font-size:10px;color:var(--tx3)">Version updated 29 Jun 2026 23:06</div>`;
   }else if(tab==='guide'){
     content=`<div class="sec">
 
     <div class="isec"><h3>➕ Adding expenses day to day</h3><p style="font-size:14px;color:var(--tx2);line-height:1.7">Tap <strong style="color:var(--tx)">+</strong> any time you spend. Pick category, enter amount, add description. Saves instantly and syncs to all devices. Tap any square to see transactions and delete mistakes.</p></div>
 
-    <div class="isec"><h3>♻️ How carryover works</h3><p style="font-size:14px;color:var(--tx2);line-height:1.7">Unspent budget rolls forward automatically each fortnight. Overspend carries as a deficit. Each square shows spend vs budget this fortnight plus any carry from prior fortnights.</p></div>
+    <div class="isec"><h3>♻️ How carryover works</h3><p style="font-size:14px;color:var(--tx2);line-height:1.7">Unspent budget rolls forward automatically each fortnight. Overspend carries as a deficit. Each square shows spend vs budget this fortnight plus any carry over from prior fortnights.</p></div>
 
     <div class="isec"><h3>📄 Monthly statement import (6th of each month)</h3>
     <ol style="list-style:none;padding:0">
@@ -697,7 +701,7 @@ function render(){
     <div style="background:var(--sf);border:1px solid var(--br);border-radius:var(--rad);padding:12px 14px">
       ${CATS.map(c=>`<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--br);font-size:13px"><span>${c.icon} ${c.label}${c.fixed?' <span style="color:var(--tx3);font-size:10px">fixed</span>':''}</span><span style="font-weight:700">${fm(c.weekly*2)}/fn</span></div>`).join('')}
     </div></div>
-    <div class="sec"><button onclick="confirmReset()" style="width:100%;padding:12px;border-radius:var(--rs);font-size:14px;font-weight:600;cursor:pointer;border:1px solid var(--R);background:var(--Rbg);color:var(--Rtx)">Reset to Factory</button></div><div style="text-align:center;padding:8px;font-size:10px;color:var(--tx3)">Version updated 29 Jun 2026 03:31</div>`;
+    <div class="sec"><button onclick="confirmReset()" style="width:100%;padding:12px;border-radius:var(--rs);font-size:14px;font-weight:600;cursor:pointer;border:1px solid var(--R);background:var(--Rbg);color:var(--Rtx)">Reset to Factory</button></div><div style="text-align:center;padding:8px;font-size:10px;color:var(--tx3)">Version updated 29 Jun 2026 23:06</div>`;
   }else if(tab==='guide'){
     content=`<div class="sec">
 
@@ -796,7 +800,7 @@ function render(){
     <div style="background:var(--sf);border:1px solid var(--br);border-radius:var(--rad);padding:12px 14px">
       ${CATS.map(c=>`<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--br);font-size:13px"><span>${c.icon} ${c.label}${c.fixed?' <span style="color:var(--tx3);font-size:10px">fixed</span>':''}</span><span style="font-weight:700">${fm(c.weekly*2)}/fn</span></div>`).join('')}
     </div></div>
-    <div class="sec"><button onclick="confirmReset()" style="width:100%;padding:12px;border-radius:var(--rs);font-size:14px;font-weight:600;cursor:pointer;border:1px solid var(--R);background:var(--Rbg);color:var(--Rtx)">Reset to Factory</button></div><div style="text-align:center;padding:8px;font-size:10px;color:var(--tx3)">Version updated 29 Jun 2026 03:31</div>`;
+    <div class="sec"><button onclick="confirmReset()" style="width:100%;padding:12px;border-radius:var(--rs);font-size:14px;font-weight:600;cursor:pointer;border:1px solid var(--R);background:var(--Rbg);color:var(--Rtx)">Reset to Factory</button></div><div style="text-align:center;padding:8px;font-size:10px;color:var(--tx3)">Version updated 29 Jun 2026 23:06</div>`;
   }else if(tab==='guide'){
     content=`<div class="sec">
     <div class="isec" style="background:var(--Bbg);border-radius:var(--rad);padding:14px 16px;margin-bottom:20px">
