@@ -1,6 +1,6 @@
 // Service Worker — Family Budget App
 // Update CACHE_VERSION every time you upload a new HB_v27.html
-const CACHE_VERSION = 'v35';
+const CACHE_VERSION = 'v37';
 const CACHE_NAME = 'family-budget-' + CACHE_VERSION;
 const APP_URL = '/budget/HB_v27.html';
 
