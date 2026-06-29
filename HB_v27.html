@@ -214,7 +214,7 @@ const SAVINGS=[
   {id:'renovation',  label:'Renovation Fund',    weekly:27.5,   note:'$1,560/yr for repairs',phase:'always',
     steps:[{from:'2026-07-01',weekly:25},{from:'2026-12-30',weekly:30}]},
   {id:'localholiday',label:'Local Holiday',      weekly:57.5,   note:'$7,500 every 2 years',phase:'always',
-    steps:[{from:'2026-07-01',weekly:67.59},{from:'2026-12-30',weekly:75.09}]},
+    steps:[{from:'2026-07-01',weekly:67.5},{from:'2026-12-30',weekly:75}]},
   {id:'overseas4yr', label:'Overseas Trip (recurring, starts Jan 2028)', weekly:144,  note:'$30,000 every 4 yrs · not yet active',phase:'from2028'},
 ];
 
@@ -547,7 +547,7 @@ function render(){
     <div class="sec">
     <div class="sq-grid">${sq}</div></div>`;
   }else if(tab==='savings'){
-    const savTot=activeSav.reduce((a,s)=>a+s.weekly*2,0);
+    const savTot=activeSav.reduce((a,s)=>a+savWeeklyAt(s,pk)*2,0);
     const savCum=activeSav.filter(s=>s.phase!=='from2028').reduce((a,s)=>a+cumSav(s),0);
     const sq=activeSav.map(s=>mkSavSq(s,cur)).join('');
     content=`<div class="sum-row"><div class="scard"><div class="sc-lbl">Saving this fn</div><div class="sc-val" style="color:var(--B)">${fm(savTot)}</div></div><div class="scard"><div class="sc-lbl">Saved since Jun 3</div><div class="sc-val" style="color:var(--G)">≈${fm(savCum)}</div></div></div>
@@ -620,7 +620,7 @@ function render(){
     <div style="background:var(--sf);border:1px solid var(--br);border-radius:var(--rad);padding:12px 14px">
       ${CATS.map(c=>`<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--br);font-size:13px"><span>${c.icon} ${c.label}${c.fixed?' <span style="color:var(--tx3);font-size:10px">fixed</span>':''}</span><span style="font-weight:700">${fm(c.weekly*2)}/fn</span></div>`).join('')}
     </div></div>
-    <div class="sec"><button onclick="confirmReset()" style="width:100%;padding:12px;border-radius:var(--rs);font-size:14px;font-weight:600;cursor:pointer;border:1px solid var(--R);background:var(--Rbg);color:var(--Rtx)">Reset to Factory</button></div><div style="text-align:center;padding:8px;font-size:10px;color:var(--tx3)">Version updated 29 Jun 2026 02:37</div>`;
+    <div class="sec"><button onclick="confirmReset()" style="width:100%;padding:12px;border-radius:var(--rs);font-size:14px;font-weight:600;cursor:pointer;border:1px solid var(--R);background:var(--Rbg);color:var(--Rtx)">Reset to Factory</button></div><div style="text-align:center;padding:8px;font-size:10px;color:var(--tx3)">Version updated 29 Jun 2026 03:31</div>`;
   }else if(tab==='guide'){
     content=`<div class="sec">
 
@@ -697,7 +697,7 @@ function render(){
     <div style="background:var(--sf);border:1px solid var(--br);border-radius:var(--rad);padding:12px 14px">
       ${CATS.map(c=>`<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--br);font-size:13px"><span>${c.icon} ${c.label}${c.fixed?' <span style="color:var(--tx3);font-size:10px">fixed</span>':''}</span><span style="font-weight:700">${fm(c.weekly*2)}/fn</span></div>`).join('')}
     </div></div>
-    <div class="sec"><button onclick="confirmReset()" style="width:100%;padding:12px;border-radius:var(--rs);font-size:14px;font-weight:600;cursor:pointer;border:1px solid var(--R);background:var(--Rbg);color:var(--Rtx)">Reset to Factory</button></div><div style="text-align:center;padding:8px;font-size:10px;color:var(--tx3)">Version updated 29 Jun 2026 02:37</div>`;
+    <div class="sec"><button onclick="confirmReset()" style="width:100%;padding:12px;border-radius:var(--rs);font-size:14px;font-weight:600;cursor:pointer;border:1px solid var(--R);background:var(--Rbg);color:var(--Rtx)">Reset to Factory</button></div><div style="text-align:center;padding:8px;font-size:10px;color:var(--tx3)">Version updated 29 Jun 2026 03:31</div>`;
   }else if(tab==='guide'){
     content=`<div class="sec">
 
@@ -796,7 +796,7 @@ function render(){
     <div style="background:var(--sf);border:1px solid var(--br);border-radius:var(--rad);padding:12px 14px">
       ${CATS.map(c=>`<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--br);font-size:13px"><span>${c.icon} ${c.label}${c.fixed?' <span style="color:var(--tx3);font-size:10px">fixed</span>':''}</span><span style="font-weight:700">${fm(c.weekly*2)}/fn</span></div>`).join('')}
     </div></div>
-    <div class="sec"><button onclick="confirmReset()" style="width:100%;padding:12px;border-radius:var(--rs);font-size:14px;font-weight:600;cursor:pointer;border:1px solid var(--R);background:var(--Rbg);color:var(--Rtx)">Reset to Factory</button></div><div style="text-align:center;padding:8px;font-size:10px;color:var(--tx3)">Version updated 29 Jun 2026 02:37</div>`;
+    <div class="sec"><button onclick="confirmReset()" style="width:100%;padding:12px;border-radius:var(--rs);font-size:14px;font-weight:600;cursor:pointer;border:1px solid var(--R);background:var(--Rbg);color:var(--Rtx)">Reset to Factory</button></div><div style="text-align:center;padding:8px;font-size:10px;color:var(--tx3)">Version updated 29 Jun 2026 03:31</div>`;
   }else if(tab==='guide'){
     content=`<div class="sec">
     <div class="isec" style="background:var(--Bbg);border-radius:var(--rad);padding:14px 16px;margin-bottom:20px">
