@@ -480,7 +480,7 @@ let expandedPeriods=new Set();
 let retroPeriodKey=null;
 let selChartCat=null;
 
-function closeOv(id){document.getElementById(id).classList.remove('open');}
+function closeOv(id){document.getElementById(id).classList.remove('open');if(id==='addOv'){var mb=document.getElementById('addModeBar');if(mb)mb.style.display='';addMode='essentials';}}
 function sw(t){tab=t;render();}
 function shift(d){cur=Math.max(0,cur+d);render();}
 
@@ -539,7 +539,8 @@ function fmtDateInput(el){
   el.value=v.slice(0,8);
 }
 function openSav(savId){
-  const sav=SAVINGS.find(s=>s.id===savId);
+  console.log('openSav called with:',savId);
+  const sav=SAVINGS.find(function(s){return s.id===savId;});
   if(!sav)return;
   const data=D();
   const viewOffset=getCO();
@@ -549,43 +550,48 @@ function openSav(savId){
   const withdrawn=savTotalWithdrawn(data,savId);
   const netSaved=savedToDate-withdrawn;
   const withdrawals=savWithdrawalsFor(data,savId);
-  const txHtml=withdrawals.length===0
-    ?`<p style="color:var(--tx2);font-size:14px;text-align:center;padding:16px 0">No withdrawals recorded</p>`
-    :withdrawals.map(w=>`<div class="tx-item">
-      <div><div class="tx-d">${w.description||'Withdrawal'}</div><div class="tx-m">${fmtDate(w.date)}</div></div>
-      <div style="display:flex;align-items:center;gap:6px">
-        <span class="tx-a" style="color:var(--R)">-${fm2(w.amount)}</span>
-        <button class="tx-del" onclick="delSavTx('${savId}','${w.id}')" style="background:var(--Rbg);color:var(--Rtx)">Del</button>
-      </div></div>`).join('');
-  // Remove any existing savOv and rebuild fresh
+  let txHtml;
+  if(withdrawals.length===0){
+    txHtml='<p style="color:var(--tx2);font-size:14px;text-align:center;padding:16px 0">No withdrawals recorded</p>';
+  } else {
+    txHtml=withdrawals.map(function(w){
+      const delBtn='<button class="tx-del" onclick="delSavTx(\'' +savId+ '\',\''+w.id+'\')">Del</button>';
+      return '<div class="tx-item"><div><div class="tx-d">'+(w.description||'Withdrawal')+'</div>'
+        +'<div class="tx-m">'+fmtDate(w.date)+'</div></div>'
+        +'<div style="display:flex;align-items:center;gap:6px">'
+        +'<span class="tx-a" style="color:var(--R)">-'+fm2(w.amount)+'</span>'
+        +delBtn+'</div></div>';
+    }).join('');
+  }
+  const withdrawnHtml=withdrawn>0?('<div style="font-size:11px;color:var(--R);margin-bottom:14px">Withdrawn: -'+fm(withdrawn)+'</div>'):'';
+  const addBtn='<button class="bw" style="margin-top:14px" onclick="closeOv(\'savOv\');openSavAdd(\''+savId+'\')">+ Record withdrawal</button>';
   const existing=document.getElementById('savOv');
   if(existing)existing.remove();
   const ov=document.createElement('div');
   ov.className='ov open';
   ov.id='savOv';
-  ov.innerHTML=`<div class="sheet"><div class="hdl"></div>
-    <h2 class="sh2">${sav.label}</h2>
-    <div>
-      <div style="display:flex;gap:8px;margin-bottom:12px">
-        <div class="stat3"><div class="s3l">Per fn</div><div class="s3v">${fm(curWeekly*2)}</div></div>
-        <div class="stat3"><div class="s3l">Accumulated</div><div class="s3v" style="color:var(--G)">${fm(savedToDate)}</div></div>
-        <div class="stat3"><div class="s3l">Net saved</div><div class="s3v" style="color:${netSaved>=0?'var(--G)':'var(--R)'}">${fm(netSaved)}</div></div>
-      </div>
-      ${withdrawn>0?`<div style="font-size:11px;color:var(--R);margin-bottom:14px">Total withdrawn: -${fm(withdrawn)}</div>`:''}
-      <div style="font-size:10px;font-weight:700;color:var(--tx3);letter-spacing:.6px;text-transform:uppercase;margin-bottom:8px">Withdrawals</div>
-      ${txHtml}
-      <button class="bw" style="margin-top:14px" onclick="closeOv('savOv');openSavAdd('${savId}')">+ Record withdrawal</button>
-      <button class="bw" onclick="closeOv('savOv')">Close</button>
-    </div></div>`;
-  ov.addEventListener('click',e=>{if(e.target===ov)closeOv('savOv');});
+  ov.innerHTML='<div class="sheet"><div class="hdl"></div>'
+    +'<h2 class="sh2">'+sav.label+'</h2><div>'
+    +'<div style="display:flex;gap:8px;margin-bottom:12px">'
+    +'<div class="stat3"><div class="s3l">Per fn</div><div class="s3v">'+fm(curWeekly*2)+'</div></div>'
+    +'<div class="stat3"><div class="s3l">Accumulated</div><div class="s3v" style="color:var(--G)">'+fm(savedToDate)+'</div></div>'
+    +'<div class="stat3"><div class="s3l">Net saved</div><div class="s3v" style="color:'+(netSaved>=0?'var(--G)':'var(--R)')+'">'+fm(netSaved)+'</div></div>'
+    +'</div>'+withdrawnHtml
+    +'<div style="font-size:10px;font-weight:700;color:var(--tx3);letter-spacing:.6px;margin-bottom:8px">WITHDRAWALS</div>'
+    +txHtml+addBtn
+    +'<button class="bw" onclick="closeOv(\'savOv\')">Close</button>'
+    +'</div></div>';
+  ov.addEventListener('click',function(e){if(e.target===ov)closeOv('savOv');});
   document.body.appendChild(ov);
 }
 
 function openSavAdd(savId){
-  // Reuse the main add overlay but pre-configure for savings withdrawal
   sel=savId;addMode='savings';
-  document.getElementById('addTitle').textContent='Record Withdrawal';
-  document.getElementById('addCatGrid').innerHTML=`<div style="font-size:13px;color:var(--tx2);padding:8px 0">Recording withdrawal from: <strong>${SAVINGS.find(s=>s.id===savId)?.label||savId}</strong></div>`;
+  const sav=SAVINGS.find(function(s){return s.id===savId;});
+  const lbl=sav?sav.label:savId;
+  // Hide mode bar, show fund name in category grid
+  document.getElementById('addModeBar').style.display='none';
+  document.getElementById('cg').innerHTML='<div style="font-size:13px;color:var(--tx2);padding:8px 0">Withdrawing from: <strong>'+lbl+'</strong></div>';
   document.getElementById('addDate').value='';
   document.getElementById('desc').value='';
   document.getElementById('amt').value='';
@@ -705,7 +711,7 @@ function render(){
     <div style="background:var(--sf);border:1px solid var(--br);border-radius:var(--rad);padding:12px 14px">
       ${CATS.map(c=>`<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--br);font-size:13px"><span>${c.icon} ${c.label}${c.fixed?' <span style="color:var(--tx3);font-size:10px">fixed</span>':''}</span><span style="font-weight:700">${fm(c.weekly*2)}/fn</span></div>`).join('')}
     </div></div>
-    <div class="sec"><button onclick="confirmReset()" style="width:100%;padding:12px;border-radius:var(--rs);font-size:14px;font-weight:600;cursor:pointer;border:1px solid var(--R);background:var(--Rbg);color:var(--Rtx)">Reset to Factory</button></div><div style="text-align:center;padding:8px;font-size:10px;color:var(--tx3)">Version updated 10 Jul 2026 06:53</div>`;
+    <div class="sec"><button onclick="confirmReset()" style="width:100%;padding:12px;border-radius:var(--rs);font-size:14px;font-weight:600;cursor:pointer;border:1px solid var(--R);background:var(--Rbg);color:var(--Rtx)">Reset to Factory</button></div><div style="text-align:center;padding:8px;font-size:10px;color:var(--tx3)">Version updated 10 Jul 2026 07:16</div>`;
   }else if(tab==='guide'){
     content=`<div class="sec">
 
@@ -782,7 +788,7 @@ function render(){
     <div style="background:var(--sf);border:1px solid var(--br);border-radius:var(--rad);padding:12px 14px">
       ${CATS.map(c=>`<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--br);font-size:13px"><span>${c.icon} ${c.label}${c.fixed?' <span style="color:var(--tx3);font-size:10px">fixed</span>':''}</span><span style="font-weight:700">${fm(c.weekly*2)}/fn</span></div>`).join('')}
     </div></div>
-    <div class="sec"><button onclick="confirmReset()" style="width:100%;padding:12px;border-radius:var(--rs);font-size:14px;font-weight:600;cursor:pointer;border:1px solid var(--R);background:var(--Rbg);color:var(--Rtx)">Reset to Factory</button></div><div style="text-align:center;padding:8px;font-size:10px;color:var(--tx3)">Version updated 10 Jul 2026 06:53</div>`;
+    <div class="sec"><button onclick="confirmReset()" style="width:100%;padding:12px;border-radius:var(--rs);font-size:14px;font-weight:600;cursor:pointer;border:1px solid var(--R);background:var(--Rbg);color:var(--Rtx)">Reset to Factory</button></div><div style="text-align:center;padding:8px;font-size:10px;color:var(--tx3)">Version updated 10 Jul 2026 07:16</div>`;
   }else if(tab==='guide'){
     content=`<div class="sec">
 
@@ -881,7 +887,7 @@ function render(){
     <div style="background:var(--sf);border:1px solid var(--br);border-radius:var(--rad);padding:12px 14px">
       ${CATS.map(c=>`<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--br);font-size:13px"><span>${c.icon} ${c.label}${c.fixed?' <span style="color:var(--tx3);font-size:10px">fixed</span>':''}</span><span style="font-weight:700">${fm(c.weekly*2)}/fn</span></div>`).join('')}
     </div></div>
-    <div class="sec"><button onclick="confirmReset()" style="width:100%;padding:12px;border-radius:var(--rs);font-size:14px;font-weight:600;cursor:pointer;border:1px solid var(--R);background:var(--Rbg);color:var(--Rtx)">Reset to Factory</button></div><div style="text-align:center;padding:8px;font-size:10px;color:var(--tx3)">Version updated 10 Jul 2026 06:53</div>`;
+    <div class="sec"><button onclick="confirmReset()" style="width:100%;padding:12px;border-radius:var(--rs);font-size:14px;font-weight:600;cursor:pointer;border:1px solid var(--R);background:var(--Rbg);color:var(--Rtx)">Reset to Factory</button></div><div style="text-align:center;padding:8px;font-size:10px;color:var(--tx3)">Version updated 10 Jul 2026 07:16</div>`;
   }else if(tab==='guide'){
     content=`<div class="sec">
     <div class="isec" style="background:var(--Bbg);border-radius:var(--rad);padding:14px 16px;margin-bottom:20px">
@@ -1060,6 +1066,7 @@ function saveExp(){
 
 let catOvId=null,catOvOffset=null;
 function openCat(id,offset){
+  console.log('openCat called with:',id);
   catOvId=id;
   catOvOffset=offset!==undefined?offset:cur;
   renderCatOv();
