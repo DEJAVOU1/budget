@@ -140,7 +140,6 @@ textarea.fi{resize:vertical;min-height:100px;font-family:monospace;font-size:13p
   <div class="brow"><button class="btn bs" onclick="closeOv('addOv')">Cancel</button><button class="btn bp" onclick="saveExp()">Add</button></div>
 </div></div>
 <div class="ov" id="catOv"><div class="sheet"><div class="hdl"></div><h2 class="sh2" id="catTitle"></h2><div id="catBody"></div></div></div>
-<div class="ov" id="savOv"><div class="sheet"><div class="hdl"></div><h2 class="sh2" id="savTitle"></h2><div id="savBody"></div></div></div>
 <div class="ov" id="editOv"><div class="sheet">
   <div class="hdl"></div><h2 class="sh2">Edit Transaction</h2>
   <div class="fg"><label class="fl">Category</label><div class="cg" id="editCg"></div></div>
@@ -558,27 +557,28 @@ function openSav(savId){
         <span class="tx-a" style="color:var(--R)">-${fm2(w.amount)}</span>
         <button class="tx-del" onclick="delSavTx('${savId}','${w.id}')" style="background:var(--Rbg);color:var(--Rtx)">Del</button>
       </div></div>`).join('');
-  // Ensure savOv exists in DOM (guard against stale cached versions)
-  let savOvEl=document.getElementById('savOv');
-  if(!savOvEl){
-    savOvEl=document.createElement('div');
-    savOvEl.className='ov';savOvEl.id='savOv';
-    savOvEl.innerHTML='<div class="sheet"><div class="hdl"></div><h2 class="sh2" id="savTitle"></h2><div id="savBody"></div></div>';
-    document.body.appendChild(savOvEl);
-  }
-  document.getElementById('savTitle').textContent=`${sav.label}`;
-  document.getElementById('savBody').innerHTML=`
-    <div style="display:flex;gap:8px;margin-bottom:12px">
-      <div class="stat3"><div class="s3l">Per fn</div><div class="s3v">${fm(curWeekly*2)}</div></div>
-      <div class="stat3"><div class="s3l">Accumulated</div><div class="s3v" style="color:var(--G)">${fm(savedToDate)}</div></div>
-      <div class="stat3"><div class="s3l">Net saved</div><div class="s3v" style="color:${netSaved>=0?'var(--G)':'var(--R)'}">${fm(netSaved)}</div></div>
-    </div>
-    ${withdrawn>0?`<div style="font-size:11px;color:var(--R);margin-bottom:14px">Total withdrawn: -${fm(withdrawn)}</div>`:''}
-    <div style="font-size:10px;font-weight:700;color:var(--tx3);letter-spacing:.6px;text-transform:uppercase;margin-bottom:8px">Withdrawals</div>
-    ${txHtml}
-    <button class="bw" style="margin-top:14px" onclick="closeOv('savOv');openSavAdd('${savId}')">+ Record withdrawal</button>
-    <button class="bw" onclick="closeOv('savOv')">Close</button>`;
-  document.getElementById('savOv').classList.add('open');
+  // Remove any existing savOv and rebuild fresh
+  const existing=document.getElementById('savOv');
+  if(existing)existing.remove();
+  const ov=document.createElement('div');
+  ov.className='ov open';
+  ov.id='savOv';
+  ov.innerHTML=`<div class="sheet"><div class="hdl"></div>
+    <h2 class="sh2">${sav.label}</h2>
+    <div>
+      <div style="display:flex;gap:8px;margin-bottom:12px">
+        <div class="stat3"><div class="s3l">Per fn</div><div class="s3v">${fm(curWeekly*2)}</div></div>
+        <div class="stat3"><div class="s3l">Accumulated</div><div class="s3v" style="color:var(--G)">${fm(savedToDate)}</div></div>
+        <div class="stat3"><div class="s3l">Net saved</div><div class="s3v" style="color:${netSaved>=0?'var(--G)':'var(--R)'}">${fm(netSaved)}</div></div>
+      </div>
+      ${withdrawn>0?`<div style="font-size:11px;color:var(--R);margin-bottom:14px">Total withdrawn: -${fm(withdrawn)}</div>`:''}
+      <div style="font-size:10px;font-weight:700;color:var(--tx3);letter-spacing:.6px;text-transform:uppercase;margin-bottom:8px">Withdrawals</div>
+      ${txHtml}
+      <button class="bw" style="margin-top:14px" onclick="closeOv('savOv');openSavAdd('${savId}')">+ Record withdrawal</button>
+      <button class="bw" onclick="closeOv('savOv')">Close</button>
+    </div></div>`;
+  ov.addEventListener('click',e=>{if(e.target===ov)closeOv('savOv');});
+  document.body.appendChild(ov);
 }
 
 function openSavAdd(savId){
@@ -705,7 +705,7 @@ function render(){
     <div style="background:var(--sf);border:1px solid var(--br);border-radius:var(--rad);padding:12px 14px">
       ${CATS.map(c=>`<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--br);font-size:13px"><span>${c.icon} ${c.label}${c.fixed?' <span style="color:var(--tx3);font-size:10px">fixed</span>':''}</span><span style="font-weight:700">${fm(c.weekly*2)}/fn</span></div>`).join('')}
     </div></div>
-    <div class="sec"><button onclick="confirmReset()" style="width:100%;padding:12px;border-radius:var(--rs);font-size:14px;font-weight:600;cursor:pointer;border:1px solid var(--R);background:var(--Rbg);color:var(--Rtx)">Reset to Factory</button></div><div style="text-align:center;padding:8px;font-size:10px;color:var(--tx3)">Version updated 10 Jul 2026 06:37</div>`;
+    <div class="sec"><button onclick="confirmReset()" style="width:100%;padding:12px;border-radius:var(--rs);font-size:14px;font-weight:600;cursor:pointer;border:1px solid var(--R);background:var(--Rbg);color:var(--Rtx)">Reset to Factory</button></div><div style="text-align:center;padding:8px;font-size:10px;color:var(--tx3)">Version updated 10 Jul 2026 06:53</div>`;
   }else if(tab==='guide'){
     content=`<div class="sec">
 
@@ -782,7 +782,7 @@ function render(){
     <div style="background:var(--sf);border:1px solid var(--br);border-radius:var(--rad);padding:12px 14px">
       ${CATS.map(c=>`<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--br);font-size:13px"><span>${c.icon} ${c.label}${c.fixed?' <span style="color:var(--tx3);font-size:10px">fixed</span>':''}</span><span style="font-weight:700">${fm(c.weekly*2)}/fn</span></div>`).join('')}
     </div></div>
-    <div class="sec"><button onclick="confirmReset()" style="width:100%;padding:12px;border-radius:var(--rs);font-size:14px;font-weight:600;cursor:pointer;border:1px solid var(--R);background:var(--Rbg);color:var(--Rtx)">Reset to Factory</button></div><div style="text-align:center;padding:8px;font-size:10px;color:var(--tx3)">Version updated 10 Jul 2026 06:37</div>`;
+    <div class="sec"><button onclick="confirmReset()" style="width:100%;padding:12px;border-radius:var(--rs);font-size:14px;font-weight:600;cursor:pointer;border:1px solid var(--R);background:var(--Rbg);color:var(--Rtx)">Reset to Factory</button></div><div style="text-align:center;padding:8px;font-size:10px;color:var(--tx3)">Version updated 10 Jul 2026 06:53</div>`;
   }else if(tab==='guide'){
     content=`<div class="sec">
 
@@ -881,7 +881,7 @@ function render(){
     <div style="background:var(--sf);border:1px solid var(--br);border-radius:var(--rad);padding:12px 14px">
       ${CATS.map(c=>`<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--br);font-size:13px"><span>${c.icon} ${c.label}${c.fixed?' <span style="color:var(--tx3);font-size:10px">fixed</span>':''}</span><span style="font-weight:700">${fm(c.weekly*2)}/fn</span></div>`).join('')}
     </div></div>
-    <div class="sec"><button onclick="confirmReset()" style="width:100%;padding:12px;border-radius:var(--rs);font-size:14px;font-weight:600;cursor:pointer;border:1px solid var(--R);background:var(--Rbg);color:var(--Rtx)">Reset to Factory</button></div><div style="text-align:center;padding:8px;font-size:10px;color:var(--tx3)">Version updated 10 Jul 2026 06:37</div>`;
+    <div class="sec"><button onclick="confirmReset()" style="width:100%;padding:12px;border-radius:var(--rs);font-size:14px;font-weight:600;cursor:pointer;border:1px solid var(--R);background:var(--Rbg);color:var(--Rtx)">Reset to Factory</button></div><div style="text-align:center;padding:8px;font-size:10px;color:var(--tx3)">Version updated 10 Jul 2026 06:53</div>`;
   }else if(tab==='guide'){
     content=`<div class="sec">
     <div class="isec" style="background:var(--Bbg);border-radius:var(--rad);padding:14px 16px;margin-bottom:20px">
