@@ -705,13 +705,13 @@ function render(){
     <div class="sec-hd">Import statement</div>
     <div class="ibox iam"><p>When your 28 Degrees statement arrives (6th of each month), open a new Claude chat, say <em>"Process my statement for budget tracker – export as JSON"</em> and attach the PDF. Paste the JSON here — transactions land in the correct fortnights automatically.</p></div>
     <button class="bw" onclick="document.getElementById('impOv').classList.add('open')">📄 Paste Statement JSON</button>
-    <button class="bw" onclick="exportData()">💾 Export Backup</button>
+    <button class="bw" onclick="exportData()">📊 Export CSV</button>
     </div>
     <div class="sec"><div class="sec-hd">Fortnightly budgets</div>
     <div style="background:var(--sf);border:1px solid var(--br);border-radius:var(--rad);padding:12px 14px">
       ${CATS.map(c=>`<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--br);font-size:13px"><span>${c.icon} ${c.label}${c.fixed?' <span style="color:var(--tx3);font-size:10px">fixed</span>':''}</span><span style="font-weight:700">${fm(c.weekly*2)}/fn</span></div>`).join('')}
     </div></div>
-    <div class="sec"><button onclick="confirmReset()" style="width:100%;padding:12px;border-radius:var(--rs);font-size:14px;font-weight:600;cursor:pointer;border:1px solid var(--R);background:var(--Rbg);color:var(--Rtx)">Reset to Factory</button></div><div style="text-align:center;padding:8px;font-size:10px;color:var(--tx3)">Version updated 13 Jul 2026 07:33</div>`;
+    <div class="sec"><button onclick="confirmReset()" style="width:100%;padding:12px;border-radius:var(--rs);font-size:14px;font-weight:600;cursor:pointer;border:1px solid var(--R);background:var(--Rbg);color:var(--Rtx)">Reset to Factory</button></div><div style="text-align:center;padding:8px;font-size:10px;color:var(--tx3)">Version updated 16 Jul 2026 05:36</div>`;
   }else if(tab==='guide'){
     content=`<div class="sec">
 
@@ -782,13 +782,13 @@ function render(){
     <div class="sec-hd">Import statement</div>
     <div class="ibox iam"><p>When your 28 Degrees statement arrives (6th of each month), open a new Claude chat, say <em>"Process my statement for budget tracker – export as JSON"</em> and attach the PDF. Paste the JSON here — transactions land in the correct fortnights automatically.</p></div>
     <button class="bw" onclick="document.getElementById('impOv').classList.add('open')">📄 Paste Statement JSON</button>
-    <button class="bw" onclick="exportData()">💾 Export Backup</button>
+    <button class="bw" onclick="exportData()">📊 Export CSV</button>
     </div>
     <div class="sec"><div class="sec-hd">Fortnightly budgets</div>
     <div style="background:var(--sf);border:1px solid var(--br);border-radius:var(--rad);padding:12px 14px">
       ${CATS.map(c=>`<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--br);font-size:13px"><span>${c.icon} ${c.label}${c.fixed?' <span style="color:var(--tx3);font-size:10px">fixed</span>':''}</span><span style="font-weight:700">${fm(c.weekly*2)}/fn</span></div>`).join('')}
     </div></div>
-    <div class="sec"><button onclick="confirmReset()" style="width:100%;padding:12px;border-radius:var(--rs);font-size:14px;font-weight:600;cursor:pointer;border:1px solid var(--R);background:var(--Rbg);color:var(--Rtx)">Reset to Factory</button></div><div style="text-align:center;padding:8px;font-size:10px;color:var(--tx3)">Version updated 13 Jul 2026 07:33</div>`;
+    <div class="sec"><button onclick="confirmReset()" style="width:100%;padding:12px;border-radius:var(--rs);font-size:14px;font-weight:600;cursor:pointer;border:1px solid var(--R);background:var(--Rbg);color:var(--Rtx)">Reset to Factory</button></div><div style="text-align:center;padding:8px;font-size:10px;color:var(--tx3)">Version updated 16 Jul 2026 05:36</div>`;
   }else if(tab==='guide'){
     content=`<div class="sec">
 
@@ -881,13 +881,13 @@ function render(){
     <div class="sec-hd">Import statement</div>
     <div class="ibox iam"><p>When your 28 Degrees statement arrives (6th of each month), open a new Claude chat, say <em>"Process my statement for budget tracker – export as JSON"</em> and attach the PDF. Paste the JSON here — transactions land in the correct fortnights automatically.</p></div>
     <button class="bw" onclick="document.getElementById('impOv').classList.add('open')">📄 Paste Statement JSON</button>
-    <button class="bw" onclick="exportData()">💾 Export Backup</button>
+    <button class="bw" onclick="exportData()">📊 Export CSV</button>
     </div>
     <div class="sec"><div class="sec-hd">Fortnightly budgets</div>
     <div style="background:var(--sf);border:1px solid var(--br);border-radius:var(--rad);padding:12px 14px">
       ${CATS.map(c=>`<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--br);font-size:13px"><span>${c.icon} ${c.label}${c.fixed?' <span style="color:var(--tx3);font-size:10px">fixed</span>':''}</span><span style="font-weight:700">${fm(c.weekly*2)}/fn</span></div>`).join('')}
     </div></div>
-    <div class="sec"><button onclick="confirmReset()" style="width:100%;padding:12px;border-radius:var(--rs);font-size:14px;font-weight:600;cursor:pointer;border:1px solid var(--R);background:var(--Rbg);color:var(--Rtx)">Reset to Factory</button></div><div style="text-align:center;padding:8px;font-size:10px;color:var(--tx3)">Version updated 13 Jul 2026 07:33</div>`;
+    <div class="sec"><button onclick="confirmReset()" style="width:100%;padding:12px;border-radius:var(--rs);font-size:14px;font-weight:600;cursor:pointer;border:1px solid var(--R);background:var(--Rbg);color:var(--Rtx)">Reset to Factory</button></div><div style="text-align:center;padding:8px;font-size:10px;color:var(--tx3)">Version updated 16 Jul 2026 05:36</div>`;
   }else if(tab==='guide'){
     content=`<div class="sec">
     <div class="isec" style="background:var(--Bbg);border-radius:var(--rad);padding:14px 16px;margin-bottom:20px">
@@ -1156,8 +1156,25 @@ function doImport(){
 }
 
 function exportData(){
-  const blob=new Blob([JSON.stringify(D(),null,2)],{type:'application/json'});
-  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='budget_backup_'+new Date().toISOString().slice(0,10)+'.json';a.click();
+  const data=D();
+  const rows=[['Date','Period','Category','Type','Description','Amount']];
+  const periods=data.periods||{};
+  Object.keys(periods).sort().forEach(pk=>{
+    const lbl=getPL(getPO(pk));
+    (periods[pk].transactions||[]).filter(t=>!t._deleted).sort((a,b)=>a.date.localeCompare(b.date)).forEach(t=>{
+      const cat=CATS.find(c=>c.id===t.catId);
+      const type=cat?(cat.fixed?'Fixed':'Essentials'):'Unknown';
+      rows.push([t.date,lbl,cat?cat.label:t.catId,type,t.description||'',t.amount]);
+    });
+  });
+  // Add savings withdrawals
+  (data.savWithdrawals||[]).filter(w=>!w._deleted).sort((a,b)=>a.date.localeCompare(b.date)).forEach(w=>{
+    const sav=SAVINGS.find(s=>s.id===w.savId);
+    rows.push([w.date,'',sav?sav.label:w.savId,'Savings Withdrawal',w.description||'',-w.amount]);
+  });
+  const csv=rows.map(r=>r.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(',')).join('\n');
+  const blob=new Blob([csv],{type:'text/csv'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='budget_export_'+new Date().toISOString().slice(0,10)+'.csv';a.click();
 }
 async function confirmReset(){
   if(!confirm('Clear all transaction data?\n\nThis removes all transactions from this device and the cloud. Cannot be undone.'))return;
