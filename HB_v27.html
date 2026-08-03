@@ -631,13 +631,24 @@ function render(){
     const sq=tracked.map(c=>mkSq(data,pk,c,true)).join('');
     const fnDeficit=totSp-totBgt;
     const fnDefCls=fnDeficit>0?'var(--R)':'var(--G)';
-    const fnDefLbl=fnDeficit>0?'▲ Over budget':'▼ Under budget';
-    content=`<div class="sum-row" style="grid-template-columns:1fr"><div class="scard"><div class="sc-lbl">This fortnight</div><div class="sc-val" style="color:${fnDefCls};font-size:22px">${fnDefLbl} ${fm(Math.abs(fnDeficit))}</div></div></div><div class="sum-row"><div class="scard"><div class="sc-lbl">Overall position</div><div class="sc-val ${totSC}">${totAvail<0?'<span style="color:var(--R)">▲ Deficit</span>':'<span style="color:var(--G)">▼ Surplus</span>'} ${fm(Math.abs(totAvail))}</div></div><div class="scard" onclick="cur=getCO();tab='history';render()" style="cursor:pointer"><div class="sc-lbl">Spent this fn ↗</div><div class="sc-val">${fm(totSp)}</div></div></div>
+    const fnDefLbl=fnDeficit>0?'▲ Over by':'▼ Under by';
+    const ovDeficit=totCumSp-totCumBgt;
+    const ovCls=ovDeficit>0?'var(--R)':'var(--G)';
+    const ovLbl=ovDeficit>0?'▲ Over by':'▼ Under by';
+    content=`<div class="sum-row"><div class="scard"><div class="sc-lbl">Budget this fn</div><div class="sc-val">${fm(totBgt)}</div></div><div class="scard" onclick="cur=getCO();tab='history';render()" style="cursor:pointer"><div class="sc-lbl">Spent this fn ↗</div><div class="sc-val">${fm(totSp)}</div></div></div><div class="sum-row"><div class="scard"><div class="sc-lbl">Status this fn</div><div class="sc-val" style="color:${fnDefCls}">${fnDefLbl} ${fm(Math.abs(fnDeficit))}</div></div><div class="scard"><div class="sc-lbl">Overall position</div><div class="sc-val" style="color:${ovCls}">${ovLbl} ${fm(Math.abs(ovDeficit))}</div></div></div>
     <div class="sec"><div class="sec-hd">Essential spend this fortnight</div><div class="sq-grid">${sq}</div></div>`;
   }else if(tab==='fixed'){
     const sq=fixed.map(c=>mkSq(data,pk,c,true)).join('');
     const fixTot=fixed.reduce((s,c)=>s+fb(c.id,pk),0),fixSp=fixed.reduce((s,c)=>s+ps(data,pk,c.id),0);
-    content=`<div class="sum-row"><div class="scard"><div class="sc-lbl">Budget this fn</div><div class="sc-val">${fm(fixTot)}</div></div><div class="scard" onclick="cur=getCO();tab='history';render()" style="cursor:pointer"><div class="sc-lbl">Spent this fn ↗</div><div class="sc-val">${fm(fixSp)}</div></div></div>
+    const fixFnDef=fixSp-fixTot;
+    const fixFnCls=fixFnDef>0?'var(--R)':'var(--G)';
+    const fixFnLbl=fixFnDef>0?'▲ Over by':'▼ Under by';
+    const fixCumBgt=fixed.reduce((s,c)=>s+totalBudgetAll(c.id,cur),0);
+    const fixCumSp=fixed.reduce((s,c)=>s+totalSpentAll(data,c.id),0);
+    const fixOvDef=fixCumSp-fixCumBgt;
+    const fixOvCls=fixOvDef>0?'var(--R)':'var(--G)';
+    const fixOvLbl=fixOvDef>0?'▲ Over by':'▼ Under by';
+    content=`<div class="sum-row"><div class="scard"><div class="sc-lbl">Budget this fn</div><div class="sc-val">${fm(fixTot)}</div></div><div class="scard" onclick="cur=getCO();tab='history';render()" style="cursor:pointer"><div class="sc-lbl">Spent this fn ↗</div><div class="sc-val">${fm(fixSp)}</div></div></div><div class="sum-row"><div class="scard"><div class="sc-lbl">Status this fn</div><div class="sc-val" style="color:${fixFnCls}">${fixFnLbl} ${fm(Math.abs(fixFnDef))}</div></div><div class="scard"><div class="sc-lbl">Overall position</div><div class="sc-val" style="color:${fixOvCls}">${fixOvLbl} ${fm(Math.abs(fixOvDef))}</div></div></div>
     <div class="sec">
     <div class="sq-grid">${sq}</div></div>`;
   }else if(tab==='savings'){
@@ -714,7 +725,7 @@ function render(){
     <div style="background:var(--sf);border:1px solid var(--br);border-radius:var(--rad);padding:12px 14px">
       ${CATS.map(c=>`<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--br);font-size:13px"><span>${c.icon} ${c.label}${c.fixed?' <span style="color:var(--tx3);font-size:10px">fixed</span>':''}</span><span style="font-weight:700">${fm(c.weekly*2)}/fn</span></div>`).join('')}
     </div></div>
-    <div class="sec"><button onclick="confirmReset()" style="width:100%;padding:12px;border-radius:var(--rs);font-size:14px;font-weight:600;cursor:pointer;border:1px solid var(--R);background:var(--Rbg);color:var(--Rtx)">Reset to Factory</button></div><div style="text-align:center;padding:8px;font-size:10px;color:var(--tx3)">Version updated 03 Aug 2026 09:34</div>`;
+    <div class="sec"><button onclick="confirmReset()" style="width:100%;padding:12px;border-radius:var(--rs);font-size:14px;font-weight:600;cursor:pointer;border:1px solid var(--R);background:var(--Rbg);color:var(--Rtx)">Reset to Factory</button></div><div style="text-align:center;padding:8px;font-size:10px;color:var(--tx3)">Version updated 03 Aug 2026 20:56</div>`;
   }else if(tab==='guide'){
     content=`<div class="sec">
 
@@ -791,7 +802,7 @@ function render(){
     <div style="background:var(--sf);border:1px solid var(--br);border-radius:var(--rad);padding:12px 14px">
       ${CATS.map(c=>`<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--br);font-size:13px"><span>${c.icon} ${c.label}${c.fixed?' <span style="color:var(--tx3);font-size:10px">fixed</span>':''}</span><span style="font-weight:700">${fm(c.weekly*2)}/fn</span></div>`).join('')}
     </div></div>
-    <div class="sec"><button onclick="confirmReset()" style="width:100%;padding:12px;border-radius:var(--rs);font-size:14px;font-weight:600;cursor:pointer;border:1px solid var(--R);background:var(--Rbg);color:var(--Rtx)">Reset to Factory</button></div><div style="text-align:center;padding:8px;font-size:10px;color:var(--tx3)">Version updated 03 Aug 2026 09:34</div>`;
+    <div class="sec"><button onclick="confirmReset()" style="width:100%;padding:12px;border-radius:var(--rs);font-size:14px;font-weight:600;cursor:pointer;border:1px solid var(--R);background:var(--Rbg);color:var(--Rtx)">Reset to Factory</button></div><div style="text-align:center;padding:8px;font-size:10px;color:var(--tx3)">Version updated 03 Aug 2026 20:56</div>`;
   }else if(tab==='guide'){
     content=`<div class="sec">
 
@@ -890,7 +901,7 @@ function render(){
     <div style="background:var(--sf);border:1px solid var(--br);border-radius:var(--rad);padding:12px 14px">
       ${CATS.map(c=>`<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--br);font-size:13px"><span>${c.icon} ${c.label}${c.fixed?' <span style="color:var(--tx3);font-size:10px">fixed</span>':''}</span><span style="font-weight:700">${fm(c.weekly*2)}/fn</span></div>`).join('')}
     </div></div>
-    <div class="sec"><button onclick="confirmReset()" style="width:100%;padding:12px;border-radius:var(--rs);font-size:14px;font-weight:600;cursor:pointer;border:1px solid var(--R);background:var(--Rbg);color:var(--Rtx)">Reset to Factory</button></div><div style="text-align:center;padding:8px;font-size:10px;color:var(--tx3)">Version updated 03 Aug 2026 09:34</div>`;
+    <div class="sec"><button onclick="confirmReset()" style="width:100%;padding:12px;border-radius:var(--rs);font-size:14px;font-weight:600;cursor:pointer;border:1px solid var(--R);background:var(--Rbg);color:var(--Rtx)">Reset to Factory</button></div><div style="text-align:center;padding:8px;font-size:10px;color:var(--tx3)">Version updated 03 Aug 2026 20:56</div>`;
   }else if(tab==='guide'){
     content=`<div class="sec">
     <div class="isec" style="background:var(--Bbg);border-radius:var(--rad);padding:14px 16px;margin-bottom:20px">
