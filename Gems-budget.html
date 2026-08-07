@@ -698,7 +698,6 @@ function render(){
       <div style="font-size:11px;color:var(--tx3);margin-bottom:10px">Gist ID: ${cfg.gistId||'none'}</div>
       ${syncConfigured?`<button class="bw" style="margin-bottom:6px;background:var(--Gbg);color:var(--Gtx);border-color:var(--G)" onclick="manualSync()">↻ Sync now</button>`:''}
       <button class="bw" style="margin-bottom:6px" onclick="document.getElementById('syncSetupOv').classList.add('open')">${syncConfigured?'Update sync settings':'Set up cloud sync'}</button>
-      ${syncConfigured?`<button class="bw" style="background:var(--Abg);color:var(--Atx);border-color:var(--A)" onclick="fixSync()">🔧 Fix sync (create new bin)</button>`:''}
       <button class="bw" onclick="exportData()">📊 Export CSV</button>
       <button class="bw" style="margin-top:6px" onclick="generateSnapshot()">📸 Spending Snapshot</button>
     </div>
@@ -706,7 +705,9 @@ function render(){
     <div style="background:var(--sf);border:1px solid var(--br);border-radius:var(--rad);padding:12px 14px">
       ${CATS.map(c=>`<div style="display:flex;justify-content:space-between;align-items:baseline;padding:5px 0;border-bottom:1px solid var(--br);font-size:13px"><span>${c.icon} ${c.label}${c.fixed?' <span style="color:var(--tx3);font-size:10px">fixed</span>':''}</span><span style="text-align:right"><span style="font-weight:700">${fm(c.weekly)}/wk</span> <span style="font-size:10px;color:var(--tx3)">(${fm(c.weekly*52/12)}/mth)</span></span></div>`).join('')}
     </div></div>
-    <div class="sec"><button onclick="confirmReset()" style="width:100%;padding:12px;border-radius:var(--rs);font-size:14px;font-weight:600;cursor:pointer;border:1px solid var(--R);background:var(--Rbg);color:var(--Rtx)">Reset to Factory</button></div><div style="text-align:center;padding:8px;font-size:10px;color:var(--tx3)">Version updated 07 Aug 2026</div>`;
+    <div class="sec"><button onclick="confirmReset()" style="width:100%;padding:12px;border-radius:var(--rs);font-size:14px;font-weight:600;cursor:pointer;border:1px solid var(--R);background:var(--Rbg);color:var(--Rtx)">Reset to Factory</button></div>
+    ${syncConfigured?`<div class="sec"><button onclick="fixSync()" style="width:100%;padding:12px;border-radius:var(--rs);font-size:14px;font-weight:600;cursor:pointer;border:1px solid var(--A);background:var(--Abg);color:var(--Atx)">🔧 Fix Sync (create new bin)</button></div>`:''}
+    <div style="text-align:center;padding:8px;font-size:10px;color:var(--tx3)">Version updated 07 Aug 2026</div>`;
   }else if(tab==='guide'){
     content=`<div class="sec">
     <div class="isec"><h3>➕ Adding expenses day to day</h3><p style="font-size:14px;color:var(--tx2);line-height:1.7">Tap <strong style="color:var(--tx)">+</strong> any time you spend. Pick category, enter amount, add description. Saves instantly and syncs to all devices. Tap any square to see transactions and delete mistakes.</p></div>
