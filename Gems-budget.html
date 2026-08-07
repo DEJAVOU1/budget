@@ -258,10 +258,14 @@ async function cloudCreateGist(token){
       headers:{'Authorization':'Bearer '+token,'Accept':'application/vnd.github+json','Content-Type':'application/json'},
       body:JSON.stringify({description:'Gems Budget Data',public:false,files:{'budget.json':{content:JSON.stringify({periods:{}})}}})
     });
-    if(!r.ok)return null;
+    if(!r.ok){
+      let detail='HTTP '+r.status;
+      try{const j=await r.json();if(j.message)detail+=': '+j.message;}catch(e){}
+      return{id:null,error:detail};
+    }
     const j=await r.json();
-    return j.id||null;
-  }catch(e){return null;}
+    return{id:j.id||null,error:null};
+  }catch(e){return{id:null,error:'Network error: '+e.message};}
 }
 
 function mergeData(local,cloud){
@@ -351,9 +355,10 @@ async function doSyncSetup(){
   setSyncStatus('ing');
   let gistId=gistIdEntered;
   if(!gistId){
-    gistId=await cloudCreateGist(token);
+    const result=await cloudCreateGist(token);
+    gistId=result.id;
     if(!gistId){
-      alert('Could not connect to GitHub.\n\nCheck your token is copied correctly and try again.');
+      alert('Could not connect to GitHub.\n\n'+(result.error||'Unknown error')+'\n\nCheck your token is copied correctly, has the gist scope ticked, and hasn\'t expired.');
       setSyncStatus('off');
       return;
     }
@@ -1085,8 +1090,9 @@ async function fixSync(){
   setSyncStatus('ing');render();
   try{
     const local=loadRaw();
-    const gistId=await cloudCreateGist(cfg.token);
-    if(!gistId){alert('Failed to create Gist. Check your token and internet connection.');setSyncStatus('off');return;}
+    const result=await cloudCreateGist(cfg.token);
+    const gistId=result.id;
+    if(!gistId){alert('Failed to create Gist.\n\n'+(result.error||'Check your token and internet connection.'));setSyncStatus('off');return;}
     await cloudPut(local);
     setSyncCfg({token:cfg.token,gistId});
     setSyncStatus('ok');render();
