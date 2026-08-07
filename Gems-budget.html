@@ -159,8 +159,8 @@ textarea.fi{resize:vertical;min-height:100px;font-family:monospace;font-size:13p
 
 <script>
 const SK='bgt_gem_v1';
-const PS=new Date(2026,7,7);// Aug 7 2026 local midnight — CONFIRM this matches Gem's actual weekly cycle start
-const TS=new Date(2026,7,7);// Aug 7 2026 local midnight — CONFIRM this matches Gem's actual weekly cycle start
+const PS=new Date(2026,7,14);// Aug 14 2026 local midnight
+const TS=new Date(2026,7,14);// Aug 14 2026 local midnight
 
 const CATS=[
   // Essentials — tracked, variable spend — order below controls the 2-column row layout
@@ -695,6 +695,7 @@ function render(){
       <button class="bw" style="margin-bottom:6px" onclick="document.getElementById('syncSetupOv').classList.add('open')">${syncConfigured?'Update sync settings':'Set up cloud sync'}</button>
       ${syncConfigured?`<button class="bw" style="background:var(--Abg);color:var(--Atx);border-color:var(--A)" onclick="fixSync()">🔧 Fix sync (create new bin)</button>`:''}
       <button class="bw" onclick="exportData()">📊 Export CSV</button>
+      <button class="bw" style="margin-top:6px" onclick="generateSnapshot()">📸 Spending Snapshot</button>
     </div>
     <div class="sec"><div class="sec-hd">Weekly budgets</div>
     <div style="background:var(--sf);border:1px solid var(--br);border-radius:var(--rad);padding:12px 14px">
@@ -703,8 +704,17 @@ function render(){
     <div class="sec"><button onclick="confirmReset()" style="width:100%;padding:12px;border-radius:var(--rs);font-size:14px;font-weight:600;cursor:pointer;border:1px solid var(--R);background:var(--Rbg);color:var(--Rtx)">Reset to Factory</button></div><div style="text-align:center;padding:8px;font-size:10px;color:var(--tx3)">Version updated 07 Aug 2026</div>`;
   }else if(tab==='guide'){
     content=`<div class="sec">
-    <div class="isec" style="background:var(--Abg);border-radius:var(--rad);padding:14px 16px;margin-bottom:16px">
-      <h3 style="color:var(--Atx);margin-bottom:8px">🔄 Updating the app — don't skip step 2</h3>
+    <div class="isec"><h3>➕ Adding expenses day to day</h3><p style="font-size:14px;color:var(--tx2);line-height:1.7">Tap <strong style="color:var(--tx)">+</strong> any time you spend. Pick category, enter amount, add description. Saves instantly and syncs to all devices. Tap any square to see transactions and delete mistakes.</p></div>
+
+    <div class="isec"><h3>♻️ How carryover works</h3><p style="font-size:14px;color:var(--tx2);line-height:1.7">Unspent budget rolls forward automatically each week. Overspend carries as a deficit. Each square shows spend vs budget this week plus any carry over from prior weeks.</p></div>
+
+    <div class="isec" style="background:var(--Bbg);border-radius:var(--rad);padding:14px 16px;margin-bottom:16px">
+      <h3 style="color:var(--Btx);margin-bottom:8px">☁️ How cloud sync works</h3>
+      <p style="font-size:14px;color:var(--Btx);line-height:1.7">Uses her own <strong>GitHub Gist</strong> — separate from your Gist, so her data never mixes with yours. Any transaction added on one device syncs to others within a couple of seconds when online, and catches up automatically once back online.</p>
+    </div>
+
+    <div class="isec" style="background:var(--Abg);border-radius:var(--rad);padding:14px 16px">
+      <h3 style="color:var(--Atx);margin-bottom:8px">🔄 Updating the app (Demitri only) — don't skip step 2</h3>
       <ol style="list-style:none;padding:0">
         <li style="display:flex;align-items:flex-start;gap:10px;margin-bottom:8px;font-size:14px;color:var(--Atx)"><span class="snum" style="background:var(--Atx);color:var(--sf);flex-shrink:0">1</span><span>Upload the new <strong>Gems-budget.html</strong> to <strong>github.com/DEJAVOU1/budget</strong> (Add file → Upload files → Commit)</span></li>
         <li style="display:flex;align-items:flex-start;gap:10px;margin-bottom:8px;font-size:14px;color:var(--Atx)"><span class="snum" style="background:var(--Atx);color:var(--sf);flex-shrink:0">2</span><span>Open <strong>SW-Gem.js</strong> in the same repo and bump <strong>CACHE_VERSION</strong> up by one (e.g. 'v1' → 'v2'). If you skip this, the app keeps serving the old cached version and her phone never sees the update.</span></li>
@@ -712,19 +722,11 @@ function render(){
       </ol>
     </div>
 
-    <div class="isec"><h3>➕ Adding expenses day to day</h3><p style="font-size:14px;color:var(--tx2);line-height:1.7">Tap <strong style="color:var(--tx)">+</strong> any time you spend. Pick category, enter amount, add description. Saves instantly and syncs to all devices. Tap any square to see transactions and delete mistakes.</p></div>
-
-    <div class="isec"><h3>♻️ How carryover works</h3><p style="font-size:14px;color:var(--tx2);line-height:1.7">Unspent budget rolls forward automatically each week. Overspend carries as a deficit. Each square shows spend vs budget this week plus any carry over from prior weeks.</p></div>
-
-    <div class="isec" style="background:var(--Bbg);border-radius:var(--rad);padding:14px 16px">
-      <h3 style="color:var(--Btx);margin-bottom:8px">☁️ How cloud sync works</h3>
-      <p style="font-size:14px;color:var(--Btx);line-height:1.7">Uses her own <strong>GitHub Gist</strong> — separate from your Gist, so her data never mixes with yours. Any transaction added on one device syncs to others within a couple of seconds when online, and catches up automatically once back online.</p>
-    </div>
-
     </div>`;
   }
 
-  document.getElementById('hdr').innerHTML=`<div class="hdr"><div class="hdr-top"><div class="hdr-titles"><h1>Gem's Budget</h1><div class="h-sub">From 7 August 2026</div></div><div class="hdr-right"><span class="bdg ${isNow?'bdg-now':'bdg-past'}">${isNow?'Current':cur<getCO()?'Past':'Future'}</span><span class="sync-dot sync-${syncState}" id="syncStatus"><span class="dot"></span>${{no:'No sync',ok:'Synced',ing:'Syncing…',off:'Offline'}[syncState]||syncState}</span></div></div><div class="pnav"><button class="pb" onclick="shift(-1)">‹</button><span class="plbl">${getPL(cur)}</span>${cur!==getCO()?'<button class="pb" onclick="cur=getCO();render()" style="font-size:11px;padding:5px 10px;background:var(--Gbg);color:var(--Gtx);border-color:var(--G);margin-right:8px">Today</button>':''}<button class="pb" onclick="shift(1)">›</button></div><div style="display:flex;gap:8px;padding:2px 0 0"><button onclick="manualSync()" style="flex:1;padding:6px;border-radius:var(--rs);font-size:12px;font-weight:700;cursor:pointer;border:1px solid var(--br2);background:var(--sf);color:var(--tx)">↻ Sync Now</button></div></div><div class="tabs"><div class="tab ${tab==='snapshot'?'on':''}" onclick="sw('snapshot')">Essentials</div><div class="tab ${tab==='fixed'?'on':''}" onclick="sw('fixed')">Fixed</div><div class="tab ${tab==='savings'?'on':''}" onclick="sw('savings')">Savings</div><div class="tab ${tab==='history'?'on':''}" onclick="sw('history')">History</div><div class="tab ${tab==='chart'?'on':''}" onclick="sw('chart')">Chart</div><div class="tab ${tab==='settings'?'on':''}" onclick="sw('settings')">Settings</div><div class="tab ${tab==='guide'?'on':''}" onclick="sw('guide')">Guide</div></div>`;
+
+  document.getElementById('hdr').innerHTML=`<div class="hdr"><div class="hdr-top"><div class="hdr-titles"><h1>Gem's Budget</h1><div class="h-sub">From 14 August 2026</div></div><div class="hdr-right"><span class="bdg ${isNow?'bdg-now':'bdg-past'}">${isNow?'Current':cur<getCO()?'Past':'Future'}</span><span class="sync-dot sync-${syncState}" id="syncStatus"><span class="dot"></span>${{no:'No sync',ok:'Synced',ing:'Syncing…',off:'Offline'}[syncState]||syncState}</span></div></div><div class="pnav"><button class="pb" onclick="shift(-1)">‹</button><span class="plbl">${getPL(cur)}</span>${cur!==getCO()?'<button class="pb" onclick="cur=getCO();render()" style="font-size:11px;padding:5px 10px;background:var(--Gbg);color:var(--Gtx);border-color:var(--G);margin-right:8px">Today</button>':''}<button class="pb" onclick="shift(1)">›</button></div><div style="display:flex;gap:8px;padding:2px 0 0"><button onclick="manualSync()" style="flex:1;padding:6px;border-radius:var(--rs);font-size:12px;font-weight:700;cursor:pointer;border:1px solid var(--br2);background:var(--sf);color:var(--tx)">↻ Sync Now</button></div></div><div class="tabs"><div class="tab ${tab==='snapshot'?'on':''}" onclick="sw('snapshot')">Essentials</div><div class="tab ${tab==='fixed'?'on':''}" onclick="sw('fixed')">Fixed</div><div class="tab ${tab==='savings'?'on':''}" onclick="sw('savings')">Savings</div><div class="tab ${tab==='history'?'on':''}" onclick="sw('history')">History</div><div class="tab ${tab==='chart'?'on':''}" onclick="sw('chart')">Chart</div><div class="tab ${tab==='settings'?'on':''}" onclick="sw('settings')">Settings</div><div class="tab ${tab==='guide'?'on':''}" onclick="sw('guide')">Guide</div></div>`;
   const _h=document.getElementById('hdr');
   if(_h)document.documentElement.style.setProperty('--hdr-h',(_h.offsetHeight||160)+'px');
   document.getElementById('app').innerHTML=content;
@@ -933,6 +935,92 @@ function openRetroAdd(pk,e){
   setTimeout(()=>document.getElementById('amt').focus(),150);
 }
 
+function generateSnapshot(){
+  const data=D();
+  const pk=getPK(cur);
+  const startLbl=PS.toLocaleDateString('en-AU',{day:'numeric',month:'short',year:'numeric'});
+  const todayLbl=new Date().toLocaleDateString('en-AU',{day:'numeric',month:'short',year:'numeric'});
+
+  // Per-category totals since tracking start
+  const catStats=CATS.map(c=>{
+    const spent=totalSpentAll(data,c.id);
+    const budget=totalBudgetAll(c.id,cur);
+    return{label:c.label,icon:c.icon,spent,budget,diff:budget-spent,fixed:!!c.fixed};
+  });
+  const totalSpent=catStats.reduce((s,c)=>s+c.spent,0);
+  const totalBudget=catStats.reduce((s,c)=>s+c.budget,0);
+  const overUnder=totalBudget-totalSpent;
+
+  // Top 10 categories by spend (tracked + fixed combined, excluding zero-spend)
+  const topCats=catStats.filter(c=>c.spent>0).sort((a,b)=>b.spent-a.spent).slice(0,10);
+  const maxSpent=topCats.length?topCats[0].spent:1;
+
+  // Notable items: 8 largest single transactions to date, excluding deleted
+  const allTx=[];
+  Object.entries(data.periods||{}).forEach(([pkey,p])=>{
+    (p.transactions||[]).filter(t=>!t._deleted).forEach(t=>{
+      const cat=CATS.find(c=>c.id===t.catId);
+      allTx.push({date:t.date,desc:t.description||(cat?cat.label:t.catId),amount:t.amount,cat:cat?cat.label:t.catId,icon:cat?cat.icon:'💳'});
+    });
+  });
+  const notable=allTx.sort((a,b)=>b.amount-a.amount).slice(0,8);
+
+  const barsHtml=topCats.map(c=>{
+    const pct=Math.round((c.spent/maxSpent)*100);
+    const overBudget=c.spent>c.budget;
+    return`<div style="margin-bottom:10px">
+      <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px">
+        <span>${c.icon} ${c.label}</span><span style="font-weight:700">${fm(c.spent)}</span>
+      </div>
+      <div style="background:#EEEBE4;border-radius:4px;height:10px;overflow:hidden">
+        <div style="width:${pct}%;height:100%;background:${overBudget?'#A32D2D':'#1D9E75'}"></div>
+      </div>
+    </div>`;
+  }).join('');
+
+  const notableHtml=notable.map(t=>`<tr>
+    <td style="padding:6px 8px;border-bottom:1px solid #EEEBE4;font-size:12px">${fmtDate(t.date)}</td>
+    <td style="padding:6px 8px;border-bottom:1px solid #EEEBE4;font-size:12px">${t.icon} ${t.cat}</td>
+    <td style="padding:6px 8px;border-bottom:1px solid #EEEBE4;font-size:12px">${t.desc}</td>
+    <td style="padding:6px 8px;border-bottom:1px solid #EEEBE4;font-size:12px;text-align:right;font-weight:700">${fm(t.amount)}</td>
+  </tr>`).join('');
+
+  const html=`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Gem's Budget Snapshot</title>
+  <style>
+    @page{size:A4;margin:16mm}
+    body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#1A1917;max-width:750px;margin:0 auto;padding:24px}
+    h1{font-size:22px;margin-bottom:2px}
+    .sub{color:#6B6760;font-size:13px;margin-bottom:20px}
+    .stats{display:flex;gap:12px;margin-bottom:24px}
+    .stat{flex:1;background:#F7F5F0;border-radius:8px;padding:12px 14px}
+    .stat-lbl{font-size:11px;color:#6B6760;margin-bottom:4px}
+    .stat-val{font-size:20px;font-weight:700}
+    h2{font-size:15px;margin:22px 0 10px;border-bottom:2px solid #1A1917;padding-bottom:4px}
+    table{width:100%;border-collapse:collapse}
+    th{text-align:left;padding:6px 8px;font-size:11px;color:#6B6760;border-bottom:1px solid #1A1917}
+    @media print{body{padding:0}}
+  </style></head><body>
+  <h1>Gem's Budget Snapshot</h1>
+  <div class="sub">Tracking since ${startLbl} · Generated ${todayLbl}</div>
+
+  <div class="stats">
+    <div class="stat"><div class="stat-lbl">Total Spent</div><div class="stat-val">${fm(totalSpent)}</div></div>
+    <div class="stat"><div class="stat-lbl">Total Budgeted</div><div class="stat-val">${fm(totalBudget)}</div></div>
+    <div class="stat"><div class="stat-lbl">${overUnder>=0?'Under by':'Over by'}</div><div class="stat-val" style="color:${overUnder>=0?'#1D9E75':'#A32D2D'}">${fm(Math.abs(overUnder))}</div></div>
+  </div>
+
+  <h2>Top Spending Categories</h2>
+  ${barsHtml||'<p style="font-size:12px;color:#6B6760">No spending recorded yet.</p>'}
+
+  <h2>Notable Items</h2>
+  ${notable.length?`<table><thead><tr><th>Date</th><th>Category</th><th>Description</th><th style="text-align:right">Amount</th></tr></thead><tbody>${notableHtml}</tbody></table>`:'<p style="font-size:12px;color:#6B6760">No transactions recorded yet.</p>'}
+
+  </body></html>`;
+
+  const blob=new Blob([html],{type:'text/html'});
+  const url=URL.createObjectURL(blob);
+  window.open(url,'_blank');
+}
 function exportData(){
   const data=D();
   const rows=[['Date','Period','Category','Type','Description','Amount']];
