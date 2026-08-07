@@ -1,0 +1,1099 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Gem's Budget</title>
+<style>
+:root{--bg:#F7F5F0;--sf:#FFF;--sf2:#F0EDE6;--tx:#1A1917;--tx2:#6B6760;--tx3:#9B9890;--br:rgba(0,0,0,0.08);--br2:rgba(0,0,0,0.15);--G:#1D9E75;--Gbg:#E1F5EE;--Gtx:#085041;--A:#FF8C00;--Abg:#FAEEDA;--Atx:#633806;--R:#A32D2D;--Rbg:#FCEBEB;--Rtx:#501313;--B:#185FA5;--Bbg:#E6F1FB;--Btx:#042C53;--rad:13px;--rs:9px}
+@media(prefers-color-scheme:dark){:root{--bg:#1A1917;--sf:#242320;--sf2:#2C2C2A;--tx:#F1EFE8;--tx2:#9B9890;--tx3:#5A5956;--br:rgba(255,255,255,0.07);--br2:rgba(255,255,255,0.13);--Gbg:#04342C;--Gtx:#9FE1CB;--Abg:#412402;--Atx:#FFB347;--Rbg:#501313;--Rtx:#F7C1C1;--Bbg:#042C53;--Btx:#B5D4F4}}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{background:var(--bg);color:var(--tx);font-family:-apple-system,'SF Pro Text','Segoe UI',sans-serif;min-height:100vh;padding-bottom:90px;padding-top:185px}
+#hdr{position:fixed;top:0;left:0;right:0;z-index:100;background:var(--bg)}.hdr{padding:10px 16px 8px;position:-webkit-sticky;position:sticky;top:0;z-index:50;background:var(--bg)}
+.hdr-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:7px}
+.hdr-titles{flex:1}
+h1{font-size:18px;font-weight:700;letter-spacing:-.3px;line-height:1.2}
+.h-sub{font-size:11px;color:var(--tx3);font-weight:500;margin-top:1px}
+.hdr-right{display:flex;flex-direction:column;align-items:flex-end;gap:4px}
+.bdg{font-size:11px;font-weight:700;padding:3px 9px;border-radius:20px;white-space:nowrap}
+.bdg-now{background:var(--Gbg);color:var(--Gtx)}
+.bdg-past{background:var(--sf2);color:var(--tx3)}
+/* Sync status indicator */
+.sync-dot{display:flex;align-items:center;gap:5px;font-size:11px;font-weight:600}
+.sync-dot .dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.sync-ok .dot{background:var(--G)}.sync-ok{color:var(--Gtx)}
+.sync-ing .dot{background:var(--A);animation:pulse .8s infinite}.sync-ing{color:var(--Atx)}
+.sync-off .dot{background:var(--R)}.sync-off{color:var(--Rtx)}
+.sync-no .dot{background:var(--tx3)}.sync-no{color:var(--tx3)}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.pnav{display:flex;align-items:center;gap:8px}
+.pb{background:var(--sf);border:1px solid var(--br2);border-radius:8px;padding:7px 14px;font-size:14px;font-weight:700;color:var(--tx);cursor:pointer}
+.pb:active{opacity:.7}
+.plbl{font-size:13px;color:var(--tx2);flex:1;text-align:center;font-weight:500}
+.tabs{display:flex;background:var(--sf2);border-radius:11px;padding:3px;margin:0 16px 10px;gap:1px;position:-webkit-sticky;position:sticky;top:68px;z-index:49}
+.tab{flex:1;padding:5px 1px;text-align:center;font-size:10px;font-weight:700;color:var(--tx2);border-radius:8px;cursor:pointer;transition:all .12s;white-space:nowrap}
+.tab.on{background:var(--sf);color:var(--tx);box-shadow:0 1px 4px rgba(0,0,0,0.12)}
+.sum-row{display:grid;grid-template-columns:1fr 1fr;gap:7px;padding:0 16px;margin-bottom:10px}
+.scard{background:var(--sf);border:1px solid var(--br);border-radius:var(--rad);padding:9px 12px}
+.sc-lbl{font-size:10px;color:var(--tx3);font-weight:700;letter-spacing:.5px;text-transform:uppercase;margin-bottom:3px}
+.sc-val{font-size:18px;font-weight:700;letter-spacing:-.4px}
+.sq-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;padding:0 16px;margin-bottom:12px}
+.sq{background:var(--sf);border:1px solid var(--br);border-radius:var(--rad);padding:8px 10px 7px;cursor:pointer;display:flex;flex-direction:column;gap:3px}
+.sq:active{background:var(--sf2)}
+.sq-hd{display:flex;justify-content:space-between;align-items:center}
+.sq-icon{font-size:15px}
+.sq-name{font-size:15px;font-weight:700;color:var(--tx2);letter-spacing:.1px;flex:1;padding-right:4px;line-height:1.2}
+.sq-main .spent{font-size:22px;font-weight:700}
+.sq-main .of{font-size:14px;color:var(--tx2);font-weight:500}
+.sq-main .budget{font-size:20px;font-weight:600}
+.sq.ok .sq-main .spent{color:var(--G)}.sq.warn .sq-main .spent{color:var(--A)}.sq.over .sq-main .spent{color:var(--R)}
+.sq-carry{font-size:13px;font-weight:600;line-height:1.2}
+.sq-carry.neg{color:var(--R)}.sq-carry.pos{color:var(--G)}.sq-carry.none{color:var(--tx3);font-weight:400}
+.sq-overall{font-size:13px;color:var(--tx3);line-height:1.2}
+.sq-bar{height:3px;background:var(--sf2);border-radius:2px;overflow:hidden;margin-top:2px}
+.sq-fill{height:100%;border-radius:2px}
+.sq-fill.ok{background:var(--G)}.sq-fill.warn{background:var(--A)}.sq-fill.over{background:var(--R);width:100%!important}
+.sv-sq{background:var(--sf);border:1px solid var(--br);border-radius:var(--rad);padding:8px 10px 7px;display:flex;flex-direction:column;gap:3px}
+.sv-fn{font-size:24px;font-weight:700;letter-spacing:-.3px;color:var(--B)}
+.sv-fnlbl{font-size:13px;color:var(--tx3);font-weight:600;letter-spacing:.2px;text-transform:uppercase}
+.sv-note{font-size:14px;color:var(--tx2);line-height:1.3}
+.sv-cum{font-size:13px;font-weight:700;color:var(--Gtx);background:var(--Gbg);padding:2px 6px;border-radius:10px;display:inline-block}
+.sv-warn{font-size:9px;font-weight:600;color:var(--Rtx);background:var(--Rbg);padding:2px 6px;border-radius:10px;display:inline-block}
+.sec{padding:0 16px;margin-bottom:10px}
+.sec-hd{font-size:10px;font-weight:700;color:var(--tx3);letter-spacing:.7px;text-transform:uppercase;margin-bottom:10px}
+.hist-card{background:var(--sf);border:1px solid var(--br);border-radius:var(--rs);padding:0;margin-bottom:8px;overflow:hidden}
+.hist-banner{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;cursor:pointer}
+.hist-banner:active{background:var(--sf2)}
+.htx-list{border-top:1px solid var(--br);padding:8px 12px 12px}
+.htx-row{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--br);gap:8px}
+.htx-row:last-of-type{border-bottom:none}
+.htx-cat{width:90px;flex-shrink:0;font-size:12px}
+.htx-desc{flex:1;font-size:12px;color:var(--tx2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.htx-amt{font-size:13px;font-weight:700;color:var(--R);white-space:nowrap}
+.htx-del{background:var(--Rbg);border:none;color:var(--Rtx);font-size:13px;font-weight:700;cursor:pointer;padding:3px 8px;border-radius:6px;flex-shrink:0}
+.htx-add-btn{width:100%;margin-top:10px;padding:9px;border-radius:var(--rs);font-size:13px;font-weight:600;cursor:pointer;border:1px dashed var(--br2);background:transparent;color:var(--tx2)}
+.htx-add-btn:active{background:var(--sf2)}
+.chip{display:inline-block;font-size:11px;font-weight:700;padding:3px 9px;border-radius:20px}
+.cok{background:var(--Gbg);color:var(--Gtx)}.cov{background:var(--Rbg);color:var(--Rtx)}.cwn{background:var(--Abg);color:var(--Atx)}
+.ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.48);z-index:200;align-items:flex-end}
+.ov.open{display:flex}
+.sheet{background:var(--sf);border-radius:20px 20px 0 0;padding:18px 18px 44px;width:100%;max-height:88vh;overflow-y:auto}
+.hdl{width:34px;height:4px;background:var(--br2);border-radius:2px;margin:0 auto 16px}
+.sh2{font-size:18px;font-weight:700;margin-bottom:16px;letter-spacing:-.3px}
+.fg{margin-bottom:13px}
+.fl{font-size:11px;font-weight:700;color:var(--tx2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px;display:block}
+.fi{width:100%;padding:12px 13px;background:var(--sf2);border:1px solid var(--br2);border-radius:var(--rs);font-size:16px;color:var(--tx);outline:none}
+.fi:focus{border-color:var(--B)}
+.cg{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.co{padding:9px 6px;background:var(--sf2);border:2px solid transparent;border-radius:var(--rs);font-size:12px;font-weight:700;cursor:pointer;text-align:center;line-height:1.3}
+.co.sel{border-color:var(--tx);background:var(--tx);color:var(--bg)}
+.brow{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px}
+.btn{padding:13px;border-radius:var(--rs);font-size:15px;font-weight:700;cursor:pointer;border:none}
+.bp{background:var(--tx);color:var(--bg)}.bs{background:var(--sf2);color:var(--tx)}
+.btn:active{opacity:.8;transform:scale(.98)}
+.bw{width:100%;padding:12px;border-radius:var(--rs);font-size:14px;font-weight:600;cursor:pointer;border:1px solid var(--br2);background:var(--sf2);color:var(--tx);margin-bottom:8px;display:block;text-align:center}
+.bw:active{opacity:.8}
+.tx-item{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--br)}
+.tx-item:last-child{border-bottom:none}
+.tx-d{font-size:14px;font-weight:500}
+.tx-m{font-size:11px;color:var(--tx3);margin-top:1px}
+.tx-a{font-size:14px;font-weight:700;color:var(--R)}
+.tx-del{background:none;border:none;color:var(--tx3);font-size:20px;cursor:pointer;padding:2px 8px}
+.stat3{background:var(--sf);border:1px solid var(--br);border-radius:var(--rs);padding:10px 11px;flex:1}
+.s3l{font-size:10px;color:var(--tx3);font-weight:700;letter-spacing:.5px;text-transform:uppercase;margin-bottom:2px}
+.s3v{font-size:16px;font-weight:700;letter-spacing:-.2px}
+.ibox{border-radius:var(--rs);padding:12px 14px;margin-bottom:12px;line-height:1.6}
+.ibox p,.ibox li{font-size:13px}.ibox ul,.ibox ol{padding-left:16px;margin-top:4px}
+.ibl{background:var(--Bbg)}.ibl p,.ibl li{color:var(--Btx)}
+.iam{background:var(--Abg)}.iam p,.iam li{color:var(--Atx)}
+.ign{background:var(--Gbg)}.ign p,.ign li{color:var(--Gtx)}
+.isec{margin-bottom:22px}
+.isec h3{font-size:15px;font-weight:700;margin-bottom:8px}
+.isec p,.isec li{font-size:14px;color:var(--tx2);line-height:1.7}
+.isec ul,.isec ol{padding-left:18px;margin-top:4px}.isec li{margin-bottom:3px}
+.snum{display:inline-flex;width:22px;height:22px;background:var(--tx);color:var(--bg);border-radius:50%;font-size:11px;font-weight:700;align-items:center;justify-content:center;margin-right:8px;flex-shrink:0;vertical-align:middle}
+textarea.fi{resize:vertical;min-height:100px;font-family:monospace;font-size:13px}
+.fab{position:fixed;bottom:22px;right:16px;width:54px;height:54px;background:var(--tx);color:var(--bg);border:none;border-radius:50%;font-size:26px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 18px rgba(0,0,0,0.22);z-index:100}
+.fab:active{transform:scale(.93)}
+.sync-banner{margin:0 16px 12px;padding:10px 14px;border-radius:var(--rs);font-size:12px;font-weight:600;display:none}
+.sync-banner.show{display:block}
+.sync-banner.ok{background:var(--Gbg);color:var(--Gtx)}
+.sync-banner.err{background:var(--Rbg);color:var(--Rtx)}
+</style>
+</head>
+<body>
+<div id="hdr"></div>
+<div id="app"></div>
+<button class="fab" onclick="openAdd()" aria-label="Add">+</button>
+<div class="ov" id="addOv"><div class="sheet">
+  <div class="hdl"></div><h2 class="sh2">Add Expense</h2>
+  <div class="fg">
+    <div style="display:flex;background:var(--sf2);border-radius:10px;padding:3px;margin-bottom:10px;gap:2px" id="addModeBar">
+      <button id="addModeEss" onclick="setAddMode('essentials')" style="flex:1;padding:7px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;border:none;background:var(--tx);color:var(--bg)">Essentials</button>
+      <button id="addModeFix" onclick="setAddMode('fixed')" style="flex:1;padding:7px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;border:none;background:transparent;color:var(--tx2)">Fixed</button>
+    </div>
+    <label class="fl">Category</label><div class="cg" id="cg"></div>
+  </div>
+  <div class="fg"><label class="fl">Amount ($)</label><input class="fi" type="number" id="amt" placeholder="0.00" step="0.01" inputmode="decimal"></div>
+  <div class="fg"><label class="fl">Description (optional)</label><input class="fi" type="text" id="desc" placeholder="e.g. Woolworths, Uber Eats"></div>
+  <div class="fg"><label class="fl">Date (leave blank for today)</label><input class="fi" type="text" id="addDate" placeholder="DDMMYY" maxlength="8" inputmode="numeric" oninput="fmtDateInput(this)"></div>
+  <div class="brow"><button class="btn bs" onclick="closeOv('addOv')">Cancel</button><button class="btn bp" onclick="saveExp()">Add</button></div>
+</div></div>
+<div class="ov" id="catOv"><div class="sheet"><div class="hdl"></div><h2 class="sh2" id="catTitle"></h2><div id="catBody"></div></div></div>
+<div class="ov" id="editOv"><div class="sheet">
+  <div class="hdl"></div><h2 class="sh2">Edit Transaction</h2>
+  <div class="fg"><label class="fl">Category</label><div class="cg" id="editCg"></div></div>
+  <div class="fg"><label class="fl">Amount ($)</label><input class="fi" type="number" id="editAmt" step="0.01" inputmode="decimal"></div>
+  <div class="fg"><label class="fl">Description</label><input class="fi" type="text" id="editDesc"></div>
+  <div class="fg"><label class="fl">Date (DD/MM/YYYY)</label><input class="fi" type="text" id="editDate" placeholder="03/06/2026"></div>
+  <div class="brow"><button class="btn bs" onclick="closeOv('editOv')">Cancel</button><button class="btn bp" onclick="saveEdit()">Save</button></div>
+</div></div>
+<div class="ov" id="syncSetupOv"><div class="sheet">
+  <div class="hdl"></div><h2 class="sh2">☁️ Set Up Cloud Sync</h2>
+  <div class="ibox ibl"><p><strong>Uses your existing GitHub account</strong> — no new accounts needed. Creates a private Gist in your GitHub to store the data. All three devices share the same live data automatically.</p></div>
+  <div class="fg"><label class="fl">GitHub Personal Access Token</label><input class="fi" type="text" id="apiKeyInput" placeholder="ghp_..."></div>
+  <div class="fg" id="existingBinGroup" style="display:none"><label class="fl">Gist ID (if already set up on another device)</label><input class="fi" type="text" id="binIdInput" placeholder="Leave blank to create new"></div>
+  <button class="btn bp" style="width:100%;margin-top:4px" onclick="toggleBinField()">Already set up on another device? Enter Gist ID</button>
+  <div class="brow" style="margin-top:12px"><button class="btn bs" onclick="closeOv('syncSetupOv')">Cancel</button><button class="btn bp" onclick="doSyncSetup()">Connect</button></div>
+</div></div>
+
+<script>
+const SK='bgt_gem_v1';
+const PS=new Date(2026,7,7);// Aug 7 2026 local midnight — CONFIRM this matches Gem's actual weekly cycle start
+const TS=new Date(2026,7,7);// Aug 7 2026 local midnight — CONFIRM this matches Gem's actual weekly cycle start
+
+const CATS=[
+  // Essentials — tracked, variable spend — order below controls the 2-column row layout
+  {id:'groceries',   label:'Groceries',                icon:'🛒',weekly:125,  tracked:true},
+  {id:'petcare',     label:'Pet Care',                  icon:'🐾',weekly:15,   tracked:true},
+  {id:'petrol',      label:'Petrol / Tolls',            icon:'⛽',weekly:12.5, tracked:true},
+  {id:'pttolls',     label:'Public Transport',          icon:'🚌',weekly:12.5, tracked:true},
+  {id:'beauty',      label:'Beauty',                    icon:'💅',weekly:10,   tracked:true},
+  {id:'clothes',     label:'Clothes',                   icon:'👕',weekly:0,    tracked:true},
+  {id:'playdates',   label:'Playdates',                 icon:'🧸',weekly:25,   tracked:true},
+  {id:'giftsruby',   label:'Gifts for Ruby',            icon:'🎁',weekly:20,   tracked:true},
+  {id:'medical',     label:'Medical (inc Ozempic)',     icon:'🏥',weekly:30,   tracked:true},
+  {id:'dental',      label:'Dental',                    icon:'🦷',weekly:0,    tracked:true},
+  {id:'takeaway',    label:'Takeaway',                  icon:'🥡',weekly:10,   tracked:true},
+  {id:'alcohol',     label:'Alcohol',                   icon:'🍷',weekly:5,    tracked:true},
+  {id:'homepurchases',label:'Home Purchases',           icon:'🛍',weekly:0,    tracked:true},
+  {id:'homerepairs', label:'Home Repairs',              icon:'🔧',weekly:0,    tracked:true},
+  // Fixed — set amounts, not itemised
+  {id:'mortgage',    label:'Mortgage',                  icon:'🏠',weekly:915.5, tracked:false,fixed:true},
+  {id:'daycare',     label:'Daycare / School Fees',     icon:'📚',weekly:156.5, tracked:false,fixed:true},
+  {id:'strata',      label:'Strata',                    icon:'🏢',weekly:111.33,tracked:false,fixed:true},
+  {id:'electricity', label:'Electricity',                icon:'💡',weekly:15,   tracked:false,fixed:true},
+  {id:'gas',         label:'Gas',                        icon:'🔥',weekly:10,   tracked:false,fixed:true},
+  {id:'internet',    label:'Internet',                   icon:'📶',weekly:11,   tracked:false,fixed:true},
+  {id:'water',       label:'Water',                      icon:'💧',weekly:35,   tracked:false,fixed:true},
+  {id:'gemsubs',     label:'Subscriptions',              icon:'📱',weekly:2.5,  tracked:false,fixed:true},
+  {id:'council',     label:'Council',                    icon:'🏛',weekly:19.5, tracked:false,fixed:true},
+  {id:'gembankfees', label:'Bank Fees',                  icon:'🏦',weekly:0,    tracked:false,fixed:true},
+];
+
+const SAVINGS=[
+  {id:'emergency',   label:'Emergency Fund',   weekly:0,  note:'No amount set yet — confirm with Gem',phase:'always'},
+  {id:'renovation',  label:'Renovation Fund',  weekly:0,  note:'No amount set yet — confirm with Gem',phase:'always'},
+  {id:'localholiday',label:'Local Holiday',    weekly:0,  note:'No amount set yet — confirm with Gem',phase:'always'},
+];
+
+const SEED={"periods":{}};
+
+// ── CLOUD SYNC via GitHub Gist ──
+let syncState='no';
+let syncTimer=null;
+let isSyncing=false;
+let lastSyncedHash='';
+
+function getSyncCfg(){
+  try{return JSON.parse(localStorage.getItem(SK+'_sync'))||{};}catch(e){return{};}
+}
+function setSyncCfg(c){localStorage.setItem(SK+'_sync',JSON.stringify(c));}
+
+function hashData(d){
+  let count=0,sum=0;
+  Object.values(d.periods||{}).forEach(p=>(p.transactions||[]).forEach(t=>{count++;sum+=t.amount||0;}));
+  return count+'_'+sum.toFixed(2);
+}
+
+async function cloudGet(){
+  const cfg=getSyncCfg();
+  if(!cfg.token||!cfg.gistId)return null;
+  try{
+    const r=await fetch('https://api.github.com/gists/'+cfg.gistId,{
+      headers:{'Authorization':'Bearer '+cfg.token,'Accept':'application/vnd.github+json'}
+    });
+    if(!r.ok)return null;
+    const j=await r.json();
+    const content=j.files?.['budget.json']?.content;
+    if(!content)return null;
+    return JSON.parse(content);
+  }catch(e){return null;}
+}
+
+async function cloudPut(data){
+  const cfg=getSyncCfg();
+  if(!cfg.token||!cfg.gistId)return false;
+  const body=JSON.stringify({files:{'budget.json':{content:JSON.stringify(data)}}});
+  const headers={'Authorization':'Bearer '+cfg.token,'Accept':'application/vnd.github+json','Content-Type':'application/json'};
+  // Try up to 3 times - GitHub Gist returns 409 if requests come too close together
+  for(let attempt=0;attempt<3;attempt++){
+    try{
+      if(attempt>0)await new Promise(r=>setTimeout(r,1500*attempt));
+      const r=await fetch('https://api.github.com/gists/'+cfg.gistId,{method:'PATCH',headers,body});
+      if(r.ok)return true;
+      if(r.status===409){continue;} // conflict - retry
+      return false;
+    }catch(e){
+      if(attempt===2)return false;
+    }
+  }
+  return false;
+}
+
+async function cloudCreateGist(token){
+  try{
+    const r=await fetch('https://api.github.com/gists',{
+      method:'POST',
+      headers:{'Authorization':'Bearer '+token,'Accept':'application/vnd.github+json','Content-Type':'application/json'},
+      body:JSON.stringify({description:'Gems Budget Data',public:false,files:{'budget.json':{content:JSON.stringify({periods:{}})}}})
+    });
+    if(!r.ok)return null;
+    const j=await r.json();
+    return j.id||null;
+  }catch(e){return null;}
+}
+
+function mergeData(local,cloud){
+  const merged={periods:{}};
+  const allPk=new Set([...Object.keys(local.periods||{}),...Object.keys(cloud.periods||{})]);
+  allPk.forEach(pk=>{
+    const lTx=(local.periods[pk]?.transactions||[]);
+    const cTx=(cloud.periods[pk]?.transactions||[]);
+    const byId={};
+    lTx.forEach(t=>{byId[t.id]=t;});
+    cTx.forEach(t=>{
+      if(!byId[t.id]||(t._ts||0)>(byId[t.id]._ts||0))byId[t.id]=t;
+    });
+    const txs=Object.values(byId).filter(t=>!t._deleted);
+    if(txs.length>0)merged.periods[pk]={transactions:txs};
+  });
+  return merged;
+}
+
+async function syncNow(){
+  // MERGE sync: pull cloud, merge with local by transaction id, push merged result back.
+  // Transactions are identified by id — whichever device has the newer _ts wins.
+  // Deleted transactions carry a _deleted flag and are never resurrected.
+  if(isSyncing)return;
+  const cfg=getSyncCfg();
+  if(!cfg.token||!cfg.gistId){setSyncStatus('no');return;}
+  isSyncing=true;
+  setSyncStatus('ing');
+  try{
+    const cloud=await cloudGet();
+    const local=loadRaw();
+    let toSave=local;
+    if(cloud&&cloud.periods){
+      // Merge: union all periods, per-transaction last-write-wins by _ts
+      const merged={periods:{}};
+      const allPk=new Set([...Object.keys(local.periods||{}),...Object.keys(cloud.periods)]);
+      allPk.forEach(pk=>{
+        const lTx=(local.periods[pk]?.transactions||[]);
+        const cTx=(cloud.periods[pk]?.transactions||[]);
+        const byId={};
+        lTx.forEach(t=>{byId[t.id]=t;});
+        cTx.forEach(t=>{
+          if(!byId[t.id]||(t._ts||0)>(byId[t.id]._ts||0))byId[t.id]=t;
+        });
+        const txs=Object.values(byId).filter(t=>!t._deleted);
+        if(txs.length>0)merged.periods[pk]={transactions:txs};
+      });
+      const lSW=(local.savWithdrawals||[]);
+      const cSW=(cloud.savWithdrawals||[]);
+      const swById={};
+      lSW.forEach(w=>{swById[w.id]=w;});
+      cSW.forEach(w=>{if(!swById[w.id]||(w._ts||0)>(swById[w.id]._ts||0))swById[w.id]=w;});
+      merged.savWithdrawals=Object.values(swById).filter(w=>!w._deleted);
+      toSave=merged;
+    }
+    const ok=await cloudPut(toSave);
+    if(ok){
+      localStorage.setItem(SK,JSON.stringify(toSave));
+      setSyncStatus('ok');
+      lastSyncedHash=hashData(toSave);
+      render();
+    }else{
+      setSyncStatus('off');
+    }
+  }catch(e){setSyncStatus('off');}
+  isSyncing=false;
+}
+
+function schedulePush(){
+  clearTimeout(syncTimer);
+  syncTimer=setTimeout(()=>syncNow(),2000);
+}
+
+function setSyncStatus(s){
+  syncState=s;
+  const el=document.getElementById('syncStatus');
+  if(!el)return;
+  const labels={no:'No sync',ok:'Synced',ing:'Syncing…',off:'Offline'};
+  el.className='sync-dot sync-'+s;
+  el.innerHTML='<span class="dot"></span>'+(labels[s]||s);
+}
+
+async function doSyncSetup(){
+  const token=document.getElementById('apiKeyInput').value.trim();
+  const gistIdEntered=document.getElementById('binIdInput').value.trim();
+  if(!token){alert('Please enter your GitHub token');return;}
+  setSyncStatus('ing');
+  let gistId=gistIdEntered;
+  if(!gistId){
+    gistId=await cloudCreateGist(token);
+    if(!gistId){
+      alert('Could not connect to GitHub.\n\nCheck your token is copied correctly and try again.');
+      setSyncStatus('off');
+      return;
+    }
+  }
+  setSyncCfg({token,gistId});
+  closeOv('syncSetupOv');
+  await syncNow();
+  alert('Cloud sync connected!\n\nGist ID: '+gistId+'\n\nSave this Gist ID — share it with the other device owner along with the token so their phone connects to the same data.');
+  render();
+}
+
+function toggleBinField(){
+  const g=document.getElementById('existingBinGroup');
+  g.style.display=g.style.display==='none'?'block':'none';
+}
+
+// ── DATA ──
+function loadRaw(){try{return JSON.parse(localStorage.getItem(SK))||{periods:{}};}catch(e){return{periods:{}};}}
+function saveLocal(d){localStorage.setItem(SK,JSON.stringify(d));}
+function D(){const e=loadRaw();if(!e.periods)e.periods={};return e;}
+
+function getPO(ds){const[y,m,d]=ds.split('-').map(Number);const date=new Date(y,m-1,d);const dd=Math.round((date-new Date(PS.getFullYear(),PS.getMonth(),PS.getDate()))/864e5);return Math.max(0,Math.floor(dd/7));}
+function getPK(o){const d=new Date(PS);d.setDate(d.getDate()+o*7);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function getPL(o){
+  const s=new Date(PS);s.setDate(s.getDate()+o*7);
+  const e=new Date(s);e.setDate(e.getDate()+6);
+  return`${s.toLocaleDateString('en-AU',{day:'numeric',month:'short'})} – ${e.toLocaleDateString('en-AU',{day:'numeric',month:'short'})}`;
+}
+function getCO(){return Math.max(0,Math.floor(Math.floor((new Date()-PS)/864e5)/7));}
+function weeklyAt(id,pk){
+  const c=CATS.find(x=>x.id===id);
+  if(!c)return 0;
+  if(!c.steps||!c.steps.length)return c.weekly;
+  // Find the latest step whose 'from' date is <= pk; fall back to base weekly
+  let rate=c.weekly;
+  c.steps.forEach(s=>{if(pk>=s.from)rate=s.weekly;});
+  return rate;
+}
+function fb(id,pk){
+  // pk optional for backward compatibility; if omitted, use current period
+  const p=pk||getPK(cur);
+  return weeklyAt(id,p);
+}
+function ps(data,pk,id){return((data.periods||{})[pk]?.transactions||[]).filter(t=>t.catId===id&&!t._deleted).reduce((s,t)=>s+t.amount,0);}
+function carry(data,pk,id){
+  // Iterate every week from week0 up to (but not including) pk
+  // whether or not that week has any transactions
+  // Each week uses its OWN budget rate (stepped budgets change over time)
+  let c=0;
+  const pkOffset=getPO(pk);
+  for(let i=0;i<pkOffset;i++){
+    const k=getPK(i);
+    const spent=((data.periods||{})[k]?.transactions||[]).filter(t=>t.catId===id&&!t._deleted).reduce((s,t)=>s+t.amount,0);
+    c+=fb(id,k)-spent;
+  }
+  return c;
+}
+function avail(data,pk,id){return fb(id,pk)+carry(data,pk,id)-ps(data,pk,id);}
+function totalSpentAll(data,id){const spk=getPK(0);return Object.entries(data.periods||{}).filter(([k])=>k>=spk).reduce((s,[,p])=>s+((p.transactions||[]).filter(t=>t.catId===id).reduce((a,t)=>a+t.amount,0)),0);}
+function totalBudgetAll(id,viewOffset){
+  // Budget accumulates one weekly allocation per week
+  // Each week may have a different rate (stepped budgets), so sum individually
+  const offset=viewOffset!==undefined?viewOffset:getCO();
+  let total=0;
+  for(let i=0;i<=offset;i++){
+    total+=fb(id,getPK(i));
+  }
+  return total;
+}
+function savWeeklyAt(sav,pk){
+  if(!sav.steps||!sav.steps.length)return sav.weekly;
+  let rate=sav.weekly;
+  sav.steps.forEach(st=>{if(pk>=st.from)rate=st.weekly;});
+  return rate;
+}
+function cumSav(sav,offset){
+  // Sum each week's OWN rate (steps may change the weekly amount over time)
+  // offset=0 (first week) shows 1 allocation, offset=1 shows 2, etc.
+  const wk=offset!==undefined?offset:Math.max(0,Math.floor((new Date()-TS)/864e5/7));
+  let total=0;
+  for(let i=0;i<=wk;i++){
+    total+=savWeeklyAt(sav,getPK(i));
+  }
+  return total;
+}
+
+function savTotalWithdrawn(data,savId){
+  return(data.savWithdrawals||[]).filter(w=>w.savId===savId&&!w._deleted).reduce((s,w)=>s+w.amount,0);
+}
+function savWithdrawalsFor(data,savId){
+  return(data.savWithdrawals||[]).filter(w=>w.savId===savId&&!w._deleted).sort((a,b)=>b.date.localeCompare(a.date));
+}
+function fm(n){return'$'+Math.abs(Math.round(n)).toLocaleString('en-AU');}
+function fm2(n){return'$'+Math.abs(n).toLocaleString('en-AU',{minimumFractionDigits:2,maximumFractionDigits:2});}
+function fmtDate(iso){if(!iso||iso.length<10)return iso||'';const[y,m,d]=iso.split('-');return d+'/'+m+'/'+y;}
+function pct(a,b){return b>0?Math.min(100,Math.max(0,Math.round(a/b*100))):0;}
+function scCls(sp,bgt){if(bgt-sp<0)return'over';if((bgt-sp)/bgt<0.2)return'warn';return'ok';}
+
+let tab='snapshot',cur=getCO(),sel=null;
+let editTx=null,editPk=null,editSel=null;
+let addMode='essentials';
+let expandedPeriods=new Set();
+let retroPeriodKey=null;
+let selChartCat=null;
+
+function closeOv(id){document.getElementById(id).classList.remove('open');if(id==='addOv'){var mb=document.getElementById('addModeBar');if(mb)mb.style.display='';addMode='essentials';}}
+function sw(t){tab=t;render();}
+function shift(d){cur=Math.max(0,cur+d);render();}
+
+function mkSq(data,pk,cat,clickable){
+  const id=cat.id,bgt=fb(id,pk),cr=carry(data,pk,id),sp=ps(data,pk,id);
+  const eff=bgt+cr,p=pct(sp,eff>0?eff:bgt),s=scCls(sp,eff>0?eff:bgt);
+  const totSp=totalSpentAll(data,id),totBgt=totalBudgetAll(id,cur);
+  const avail=totBgt-totSp; // true running balance: cumulative budget minus cumulative spent, all-time
+  const availCls=avail<0?'neg':'pos';
+  const availLbl=avail<0?'▲ over budget':'▼ available';
+  const wkRate=weeklyAt(id,pk),monthlyRate=wkRate*52/12;
+  const ca=clickable?`onclick="openCat('${id}')" `:'';
+  return`<div class="sq ${s}" ${ca}>
+    <div><div class="sq-hd"><span class="sq-name">${cat.label}</span><span class="sq-icon">${cat.icon}</span></div>
+    <div class="sq-main"><span class="${availCls==='neg'?'spent':'spent'}" style="color:var(${avail<0?'--R':'--G'})">${fm(Math.abs(avail))}</span><span class="of"> ${availLbl}</span></div></div>
+    <div><div class="sq-overall">This week: ${fm(sp)} of ${fm(bgt)} &nbsp;|&nbsp; Overall: ${fm(totSp)} of ${fm(totBgt)}</div>
+    <div class="sq-overall" style="opacity:.7">${fm(wkRate)}/wk <span style="font-size:10px">(${fm(monthlyRate)}/mth)</span></div>
+    <div class="sq-bar"><div class="sq-fill ${s}" style="width:${p}%"></div></div></div>
+  </div>`;
+}
+
+function mkSavSq(s,offset){
+  // Current week rate (resolves any stepped change)
+  const viewOffset=offset!==undefined?offset:getCO();
+  const pk=getPK(viewOffset);
+  const curWeekly=savWeeklyAt(s,pk);
+  const curMonthly=curWeekly*52/12;
+  // Saved to date: cumulative total up to and including the week being viewed
+  const savedToDate=cumSav(s,viewOffset);
+  // Two fixed milestone totals: by 30 Dec 2026 and by 28 Dec 2027
+  const off2026=getPO('2026-12-30'),off2027=getPO('2027-12-28');
+  const cum2026=cumSav(s,off2026),cum2027=cumSav(s,off2027);
+  const warnEl=s.warn?`<div class="sv-warn">⚠ ${s.warn}</div>`:'';
+  const data=D();
+  const withdrawn=savTotalWithdrawn(data,s.id);
+  const netSaved=savedToDate-withdrawn;
+  return`<div class="sv-sq" onclick="openSav('${s.id}')" style="cursor:pointer">
+    <div><div class="sq-hd" style="margin-bottom:4px"><span class="sq-name">${s.label}</span></div>
+    <div class="sv-fnlbl">Per week</div><div class="sv-fn">${fm(curWeekly)}</div><div style="font-size:11px;color:var(--tx3)">${fm(curMonthly)}/mth</div></div>
+    <div><div class="sv-note">${s.note}</div>
+    <div class="sv-cum" style="color:var(--G);font-weight:600">Net saved: ${fm(netSaved)}</div>
+    ${withdrawn>0?`<div class="sv-cum" style="color:var(--R)">Withdrawn: -${fm(withdrawn)}</div>`:''}
+    <div class="sv-cum">≈${fm(cum2026)} by 30/12/26</div>
+    <div class="sv-cum">≈${fm(cum2027)} by 28/12/27</div>${warnEl}</div>
+  </div>`;
+}
+
+function fmtDateInput(el){
+  // Strip non-digits
+  let v=el.value.replace(/\D/g,'');
+  // Auto-insert slashes: DD/MM/YY
+  if(v.length>2)v=v.slice(0,2)+'/'+v.slice(2);
+  if(v.length>5)v=v.slice(0,5)+'/'+v.slice(5);
+  // Cap at 8 chars (DD/MM/YY)
+  el.value=v.slice(0,8);
+}
+function openSav(savId){
+  console.log('openSav called with:',savId);
+  const sav=SAVINGS.find(function(s){return s.id===savId;});
+  if(!sav)return;
+  const data=D();
+  const viewOffset=getCO();
+  const pk=getPK(viewOffset);
+  const curWeekly=savWeeklyAt(sav,pk);
+  const curMonthly=curWeekly*52/12;
+  const savedToDate=cumSav(sav,viewOffset);
+  const withdrawn=savTotalWithdrawn(data,savId);
+  const netSaved=savedToDate-withdrawn;
+  const withdrawals=savWithdrawalsFor(data,savId);
+  let txHtml;
+  if(withdrawals.length===0){
+    txHtml='<p style="color:var(--tx2);font-size:14px;text-align:center;padding:16px 0">No withdrawals recorded</p>';
+  } else {
+    txHtml=withdrawals.map(function(w){
+      const delBtn='<button class="tx-del" onclick="delSavTx(\'' +savId+ '\',\''+w.id+'\')">Del</button>';
+      return '<div class="tx-item"><div><div class="tx-d">'+(w.description||'Withdrawal')+'</div>'
+        +'<div class="tx-m">'+fmtDate(w.date)+'</div></div>'
+        +'<div style="display:flex;align-items:center;gap:6px">'
+        +'<span class="tx-a" style="color:var(--R)">-'+fm2(w.amount)+'</span>'
+        +delBtn+'</div></div>';
+    }).join('');
+  }
+  const withdrawnHtml=withdrawn>0?('<div style="font-size:11px;color:var(--R);margin-bottom:14px">Withdrawn: -'+fm(withdrawn)+'</div>'):'';
+  const addBtn='<div style="display:flex;gap:8px;margin-bottom:12px">'+'<button class="bw" style="flex:1" onclick="closeOv(&apos;savOv&apos;);openSavAdd(&apos;'+savId+'&apos;)">+ Add</button>'+'<button class="bw" style="flex:1" onclick="closeOv(&apos;savOv&apos;)">✕ Close</button>'+'</div>';
+  const existing=document.getElementById('savOv');
+  if(existing)existing.remove();
+  const ov=document.createElement('div');
+  ov.className='ov open';
+  ov.id='savOv';
+  ov.innerHTML='<div class="sheet"><div class="hdl"></div>'
+    +'<h2 class="sh2">'+sav.label+'</h2><div>'
+    +'<div style="display:flex;gap:8px;margin-bottom:12px">'
+    +'<div class="stat3"><div class="s3l">Per week</div><div class="s3v">'+fm(curWeekly)+'</div><div style="font-size:10px;color:var(--tx3)">'+fm(curMonthly)+'/mth</div></div>'
+    +'<div class="stat3"><div class="s3l">Accumulated</div><div class="s3v" style="color:var(--G)">'+fm(savedToDate)+'</div></div>'
+    +'<div class="stat3"><div class="s3l">Net saved</div><div class="s3v" style="color:'+(netSaved>=0?'var(--G)':'var(--R)')+'">'+fm(netSaved)+'</div></div>'
+    +'</div>'+withdrawnHtml
+    +addBtn
+    +'<div style="font-size:10px;font-weight:700;color:var(--tx3);letter-spacing:.6px;margin-bottom:8px">WITHDRAWALS</div>'
+    +txHtml
+    +'</div></div>';
+  ov.addEventListener('click',function(e){if(e.target===ov)closeOv('savOv');});
+  document.body.appendChild(ov);
+}
+
+function openSavAdd(savId){
+  sel=savId;addMode='savings';
+  const sav=SAVINGS.find(function(s){return s.id===savId;});
+  const lbl=sav?sav.label:savId;
+  // Hide mode bar, show fund name in category grid
+  document.getElementById('addModeBar').style.display='none';
+  document.getElementById('cg').innerHTML='<div style="font-size:13px;color:var(--tx2);padding:8px 0">Withdrawing from: <strong>'+lbl+'</strong></div>';
+  document.getElementById('addDate').value='';
+  document.getElementById('desc').value='';
+  document.getElementById('amt').value='';
+  document.getElementById('addOv').classList.add('open');
+}
+
+function delSavTx(savId,id){
+  const data=D();
+  if(!data.savWithdrawals)return;
+  const tx=data.savWithdrawals.find(w=>String(w.id)===String(id));
+  if(tx){tx._deleted=true;tx._ts=Date.now();}
+  saveLocal(data);
+  schedulePush();
+  openSav(savId);
+}
+
+function render(){
+  const data=D(),pk=getPK(cur),isNow=cur===getCO();
+  const pdDate=new Date(pk+'T12:00:00');
+  const tracked=CATS.filter(c=>c.tracked),fixed=CATS.filter(c=>c.fixed);
+  let totAvail=0,totBgt=0,totSp=0,totCumSp=0,totCumBgt=0;
+  tracked.forEach(c=>{
+    totAvail+=avail(data,pk,c.id);
+    totBgt+=fb(c.id,pk);
+    totSp+=ps(data,pk,c.id);
+    totCumSp+=totalSpentAll(data,c.id);
+    totCumBgt+=totalBudgetAll(c.id,cur);
+  });
+  const totSC=totAvail<0?'over':totAvail<totBgt*0.15?'warn':'ok';
+  const pdDate2=new Date(pk+'T12:00:00');
+  const activeSav=SAVINGS.filter(s=>s.phase==='always'||(s.phase==='until2027'&&pdDate2<=new Date('2027-12-31T00:00:00'))||(s.phase==='from2028'&&pdDate2>=new Date('2028-01-01T00:00:00'))).sort((a,b)=>savWeeklyAt(b,pk)-savWeeklyAt(a,pk));
+  const cfg=getSyncCfg();
+  const syncConfigured=!!(cfg.token&&cfg.gistId);
+
+  let content='';
+  if(tab==='snapshot'){
+    const sq=tracked.map(c=>mkSq(data,pk,c,true)).join('');
+    const fnDeficit=totSp-totBgt;
+    const fnDefCls=fnDeficit>0?'var(--R)':'var(--G)';
+    const fnDefLbl=fnDeficit>0?'▲ Over by':'▼ Under by';
+    const ovDeficit=totCumSp-totCumBgt;
+    const ovCls=ovDeficit>0?'var(--R)':'var(--G)';
+    const ovLbl=ovDeficit>0?'▲ Over by':'▼ Under by';
+    content=`<div class="sum-row"><div class="scard"><div class="sc-lbl">Budget this week</div><div class="sc-val">${fm(totBgt)}</div></div><div class="scard" onclick="cur=getCO();tab='history';render()" style="cursor:pointer"><div class="sc-lbl">Spent this week ↗</div><div class="sc-val">${fm(totSp)}</div></div></div><div class="sum-row" style="grid-template-columns:1fr"><div class="scard"><div class="sc-lbl">Status this week</div><div class="sc-val" style="color:${fnDefCls}">${fnDefLbl} ${fm(Math.abs(fnDeficit))}</div></div></div>
+    <div class="sec"><div class="sec-hd">Essential spend this week</div><div class="sq-grid">${sq}</div></div>`;
+  }else if(tab==='fixed'){
+    const sq=fixed.map(c=>mkSq(data,pk,c,true)).join('');
+    const fixTot=fixed.reduce((s,c)=>s+fb(c.id,pk),0),fixSp=fixed.reduce((s,c)=>s+ps(data,pk,c.id),0);
+    const fixFnDef=fixSp-fixTot;
+    const fixFnCls=fixFnDef>0?'var(--R)':'var(--G)';
+    const fixFnLbl=fixFnDef>0?'▲ Over by':'▼ Under by';
+    const fixCumBgt=fixed.reduce((s,c)=>s+totalBudgetAll(c.id,cur),0);
+    const fixCumSp=fixed.reduce((s,c)=>s+totalSpentAll(data,c.id),0);
+    const fixOvDef=fixCumSp-fixCumBgt;
+    const fixOvCls=fixOvDef>0?'var(--R)':'var(--G)';
+    const fixOvLbl=fixOvDef>0?'▲ Over by':'▼ Under by';
+    content=`<div class="sum-row"><div class="scard"><div class="sc-lbl">Budget this week</div><div class="sc-val">${fm(fixTot)}</div></div><div class="scard" onclick="cur=getCO();tab='history';render()" style="cursor:pointer"><div class="sc-lbl">Spent this week ↗</div><div class="sc-val">${fm(fixSp)}</div></div></div><div class="sum-row" style="grid-template-columns:1fr"><div class="scard"><div class="sc-lbl">Status this week</div><div class="sc-val" style="color:${fixFnCls}">${fixFnLbl} ${fm(Math.abs(fixFnDef))}</div></div></div>
+    <div class="sec">
+    <div class="sq-grid">${sq}</div></div>`;
+  }else if(tab==='savings'){
+    const savTot=activeSav.reduce((a,s)=>a+savWeeklyAt(s,pk),0);
+    const savCum=activeSav.filter(s=>s.phase!=='from2028').reduce((a,s)=>a+cumSav(s),0);
+    const sq=activeSav.map(s=>mkSavSq(s,cur)).join('');
+    content=`<div class="sum-row"><div class="scard"><div class="sc-lbl">Saving this week</div><div class="sc-val" style="color:var(--B)">${fm(savTot)}</div></div><div class="scard"><div class="sc-lbl">Saved since 7 Aug 2026</div><div class="sc-val" style="color:var(--G)">≈${fm(savCum)}</div></div></div>
+    <div class="sec"><div class="sq-grid">${sq}</div>
+    </div>`;
+  }else if(tab==='history'){
+    const startPK=getPK(0),periods=data.periods||{},pkeys=Object.keys(periods).filter(k=>k>=startPK).sort().reverse();
+    const rows=pkeys.length===0?`<p style="color:var(--tx2);font-size:14px;text-align:center;padding:24px 0">No history yet</p>`:pkeys.map(k=>{
+      const idx=getPO(k),txs=(periods[k]?.transactions||[]).sort((a,b)=>b.date.localeCompare(a.date));
+      const tot=txs.filter(t=>CATS.find(c=>c.id===t.catId&&c.tracked)).reduce((s,t)=>s+t.amount,0);
+      const bgt=tracked.reduce((s,c)=>s+fb(c.id,pk),0);
+      const cs=tot>bgt?'cov':tot>bgt*.85?'cwn':'cok';
+      const isExp=expandedPeriods.has(k);
+      const txRows=txs.map(t=>{const cat=CATS.find(c=>c.id===t.catId);return`<div class="htx-row"><div class="htx-cat">${cat?cat.icon:''} <span style="font-size:11px;color:var(--tx2)">${cat?cat.label:'?'}</span></div><div class="htx-desc">${t.description||t.catId}</div><div style="display:flex;align-items:center;gap:6px"><span class="htx-amt">-${fm2(t.amount)}</span><span style="font-size:10px;color:var(--tx3)">${fmtDate(t.date)}</span><button class="htx-del" onclick="openEdit('${k}','${t.id}',event)" style="background:var(--Bbg);color:var(--Btx);border-color:var(--B);margin-right:4px">Edit</button><button class="htx-del" onclick="histDelTx('${k}','${t.id}',event)">Del</button></div></div>`;}).join('');
+      return`<div class="hist-card"><div class="hist-banner" onclick="togglePeriod('${k}')"><div><div style="font-size:14px;font-weight:700">${getPL(idx)}</div><div style="font-size:12px;color:var(--tx2);margin-top:2px">${txs.length} transaction${txs.length!==1?'s':''}</div></div><div style="display:flex;align-items:center;gap:8px"><span class="chip ${cs}">${fm(tot)}</span><span style="font-size:16px;color:var(--tx3);${isExp?'transform:rotate(180deg)':''}">⌄</span></div></div>${isExp?`<div class="htx-list">${txRows}<button class="htx-add-btn" onclick="openRetroAdd('${k}',event)">+ Add transaction to this period</button></div>`:''}</div>`;
+    }).join('');
+    content=`<div class="sec"><div class="sec-hd">All weeks</div>${rows}</div>`;
+  }else if(tab==='chart'){
+    const startPK2=getPK(0),allPks=Object.keys(data.periods||{}).filter(k=>k>=startPK2).sort();
+    if(!allPks.includes(getPK(getCO()))&&allPks.length>0)allPks.push(getPK(getCO()));
+    const chartCats=CATS.filter(c=>c.tracked),selId=selChartCat||'all';
+    const selCat=chartCats.find(c=>c.id===selId)||chartCats[0];
+    let runSp=0,runBgt=0;
+    const pts=allPks.map(pk=>{
+      const idx=getPO(pk);
+      const fnSp=selId==='all'?chartCats.reduce((s,c)=>s+ps(data,pk,c.id),0):ps(data,pk,selId);
+      const fnBgt=selId==='all'?chartCats.reduce((s,c)=>s+fb(c.id,pk),0):fb(selId,pk);
+      runSp+=fnSp;runBgt+=fnBgt;
+      const lbl=getPL(idx).split(' – ')[0];
+      return{pk,idx,sp:runSp,bgt:runBgt,lbl};
+    });
+    const maxV=Math.max(...pts.map(p=>Math.max(p.sp,p.bgt)),1);
+    const W=320,H=180,PT={t:16,r:12,b:48,l:52};
+    const cW=W-PT.l-PT.r,cH=H-PT.t-PT.b;
+    const x=i=>PT.l+i*(cW/(Math.max(pts.length-1,1)));
+    const y=v=>PT.t+cH-(v/maxV)*cH;
+    const bPath=pts.map((p,i)=>(i===0?'M':'L')+x(i).toFixed(1)+','+y(p.bgt).toFixed(1)).join(' ');
+    const sPath=pts.length>0?pts.map((p,i)=>(i===0?'M':'L')+x(i).toFixed(1)+','+y(p.sp).toFixed(1)).join(' '):'';
+    const yTicks=[0,.25,.5,.75,1].map(f=>({v:Math.round(maxV*f),y:y(maxV*f)}));
+    const opts='<option value="all"'+(selId==='all'?' selected':'')+'>📊 All Categories Combined</option>'+chartCats.map(c=>`<option value="${c.id}"${c.id===selId?' selected':''}>${c.icon} ${c.label}</option>`).join('');
+    const svgC=pts.length===0?`<div style="display:flex;align-items:center;justify-content:center;height:180px;color:var(--tx3);font-size:14px">No data yet</div>`:`<svg viewBox="0 0 ${W} ${H}" style="width:100%;overflow:visible;display:block">${yTicks.map(t=>`<line x1="${PT.l}" y1="${t.y.toFixed(1)}" x2="${W-PT.r}" y2="${t.y.toFixed(1)}" stroke="var(--br2)" stroke-width="1"/><text x="${PT.l-6}" y="${(t.y+4).toFixed(1)}" text-anchor="end" font-size="9" fill="var(--tx3)">$${t.v>=1000?(t.v/1000).toFixed(1)+'k':t.v}</text>`).join('')}${pts.map((l,i)=>`<text x="${x(i).toFixed(1)}" y="${(H-PT.b+14).toFixed(1)}" text-anchor="middle" font-size="8" fill="var(--tx3)" transform="rotate(-35,${x(i).toFixed(1)},${(H-PT.b+14).toFixed(1)})">${l.lbl}</text>`).join('')}<path d="${bPath}" fill="none" stroke="var(--B)" stroke-width="2" stroke-dasharray="5,3" opacity=".7"/><path d="${sPath}" fill="none" stroke="${pts.some(p=>p.sp>p.bgt)?'var(--R)':'var(--G)'}" stroke-width="2.5"/>${pts.map((p,i)=>`<circle cx="${x(i).toFixed(1)}" cy="${y(p.sp).toFixed(1)}" r="4" fill="${p.sp>p.bgt?'var(--R)':'var(--G)'}"/>`).join('')}</svg>`;
+    content=`<div class="sec"><div class="sec-hd">Budgeted vs actual to date</div>
+    <div style="background:var(--sf);border:1px solid var(--br);border-radius:var(--rad);padding:14px 14px 10px;margin-bottom:12px">
+      <div class="fg" style="margin-bottom:12px"><label class="fl">Category</label><select class="fi" onchange="selChartCat=this.value;render()">${opts}</select></div>
+      ${svgC}
+      <div style="display:flex;gap:16px;margin-top:10px;padding-top:8px;border-top:1px solid var(--br)"><div style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--tx2)"><svg width="20" height="4"><path d="M0,2 L20,2" stroke="var(--B)" stroke-width="2" stroke-dasharray="4,2"/></svg> Budget</div><div style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--tx2)"><svg width="20" height="4"><line x1="0" y1="2" x2="20" y2="2" stroke="var(--G)" stroke-width="2.5"/></svg> Actual</div></div>
+    </div>
+    <div style="background:var(--sf);border:1px solid var(--br);border-radius:var(--rad);padding:12px 14px">${pts.length===0?'<p style="font-size:13px;color:var(--tx3)">No data yet</p>':pts.map(p=>{const cs=p.sp>p.bgt?'cov':p.sp>p.bgt*.85?'cwn':'cok';return`<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--br);font-size:13px"><span style="color:var(--tx2)">As at ${getPL(p.idx).split(' – ')[1]}</span><span class="chip ${cs}">${fm(p.sp)} <span style="font-weight:400;opacity:.7">of ${fm(p.bgt)}</span></span></div>`;}).join('')}</div>
+    </div>`;
+  }else if(tab==='settings'){
+    const syncLabel=syncConfigured?cfg.gistId?`Connected (Gist: ${cfg.gistId.slice(-8)})`:`Connected`:'Not set up';
+    const syncColour=syncConfigured?'var(--G)':'var(--tx3)';
+    content=`<div class="sec"><div class="sec-hd">☁️ Cloud sync</div>
+    <div style="background:var(--sf);border:1px solid var(--br);border-radius:var(--rad);padding:14px;margin-bottom:10px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+        <span style="font-size:14px;font-weight:700">Status</span>
+        <span style="font-size:13px;font-weight:700;color:${syncColour}">${syncLabel}</span>
+      </div>
+      <div style="font-size:11px;color:var(--tx3);margin-bottom:10px">Gist ID: ${cfg.gistId||'none'}</div>
+      ${syncConfigured?`<button class="bw" style="margin-bottom:6px;background:var(--Gbg);color:var(--Gtx);border-color:var(--G)" onclick="manualSync()">↻ Sync now</button>`:''}
+      <button class="bw" style="margin-bottom:6px" onclick="document.getElementById('syncSetupOv').classList.add('open')">${syncConfigured?'Update sync settings':'Set up cloud sync'}</button>
+      ${syncConfigured?`<button class="bw" style="background:var(--Abg);color:var(--Atx);border-color:var(--A)" onclick="fixSync()">🔧 Fix sync (create new bin)</button>`:''}
+      <button class="bw" onclick="exportData()">📊 Export CSV</button>
+    </div>
+    <div class="sec"><div class="sec-hd">Weekly budgets</div>
+    <div style="background:var(--sf);border:1px solid var(--br);border-radius:var(--rad);padding:12px 14px">
+      ${CATS.map(c=>`<div style="display:flex;justify-content:space-between;align-items:baseline;padding:5px 0;border-bottom:1px solid var(--br);font-size:13px"><span>${c.icon} ${c.label}${c.fixed?' <span style="color:var(--tx3);font-size:10px">fixed</span>':''}</span><span style="text-align:right"><span style="font-weight:700">${fm(c.weekly)}/wk</span> <span style="font-size:10px;color:var(--tx3)">(${fm(c.weekly*52/12)}/mth)</span></span></div>`).join('')}
+    </div></div>
+    <div class="sec"><button onclick="confirmReset()" style="width:100%;padding:12px;border-radius:var(--rs);font-size:14px;font-weight:600;cursor:pointer;border:1px solid var(--R);background:var(--Rbg);color:var(--Rtx)">Reset to Factory</button></div><div style="text-align:center;padding:8px;font-size:10px;color:var(--tx3)">Version updated 07 Aug 2026</div>`;
+  }else if(tab==='guide'){
+    content=`<div class="sec">
+    <div class="isec" style="background:var(--Abg);border-radius:var(--rad);padding:14px 16px;margin-bottom:16px">
+      <h3 style="color:var(--Atx);margin-bottom:8px">🔄 Updating the app — don't skip step 2</h3>
+      <ol style="list-style:none;padding:0">
+        <li style="display:flex;align-items:flex-start;gap:10px;margin-bottom:8px;font-size:14px;color:var(--Atx)"><span class="snum" style="background:var(--Atx);color:var(--sf);flex-shrink:0">1</span><span>Upload the new <strong>Gems-budget.html</strong> to <strong>github.com/DEJAVOU1/budget</strong> (Add file → Upload files → Commit)</span></li>
+        <li style="display:flex;align-items:flex-start;gap:10px;margin-bottom:8px;font-size:14px;color:var(--Atx)"><span class="snum" style="background:var(--Atx);color:var(--sf);flex-shrink:0">2</span><span>Open <strong>SW-Gem.js</strong> in the same repo and bump <strong>CACHE_VERSION</strong> up by one (e.g. 'v1' → 'v2'). If you skip this, the app keeps serving the old cached version and her phone never sees the update.</span></li>
+        <li style="display:flex;align-items:flex-start;gap:10px;font-size:14px;color:var(--Atx)"><span class="snum" style="background:var(--Atx);color:var(--sf);flex-shrink:0">3</span><span>Wait about a minute, then have her fully close and reopen the app. It checks in the background and reloads itself once it finds the new version — no delete/reinstall needed.</span></li>
+      </ol>
+    </div>
+
+    <div class="isec"><h3>➕ Adding expenses day to day</h3><p style="font-size:14px;color:var(--tx2);line-height:1.7">Tap <strong style="color:var(--tx)">+</strong> any time you spend. Pick category, enter amount, add description. Saves instantly and syncs to all devices. Tap any square to see transactions and delete mistakes.</p></div>
+
+    <div class="isec"><h3>♻️ How carryover works</h3><p style="font-size:14px;color:var(--tx2);line-height:1.7">Unspent budget rolls forward automatically each week. Overspend carries as a deficit. Each square shows spend vs budget this week plus any carry over from prior weeks.</p></div>
+
+    <div class="isec" style="background:var(--Bbg);border-radius:var(--rad);padding:14px 16px">
+      <h3 style="color:var(--Btx);margin-bottom:8px">☁️ How cloud sync works</h3>
+      <p style="font-size:14px;color:var(--Btx);line-height:1.7">Uses her own <strong>GitHub Gist</strong> — separate from your Gist, so her data never mixes with yours. Any transaction added on one device syncs to others within a couple of seconds when online, and catches up automatically once back online.</p>
+    </div>
+
+    </div>`;
+  }
+
+  document.getElementById('hdr').innerHTML=`<div class="hdr"><div class="hdr-top"><div class="hdr-titles"><h1>Gem's Budget</h1><div class="h-sub">From 7 August 2026</div></div><div class="hdr-right"><span class="bdg ${isNow?'bdg-now':'bdg-past'}">${isNow?'Current':cur<getCO()?'Past':'Future'}</span><span class="sync-dot sync-${syncState}" id="syncStatus"><span class="dot"></span>${{no:'No sync',ok:'Synced',ing:'Syncing…',off:'Offline'}[syncState]||syncState}</span></div></div><div class="pnav"><button class="pb" onclick="shift(-1)">‹</button><span class="plbl">${getPL(cur)}</span>${cur!==getCO()?'<button class="pb" onclick="cur=getCO();render()" style="font-size:11px;padding:5px 10px;background:var(--Gbg);color:var(--Gtx);border-color:var(--G);margin-right:8px">Today</button>':''}<button class="pb" onclick="shift(1)">›</button></div><div style="display:flex;gap:8px;padding:2px 0 0"><button onclick="manualSync()" style="flex:1;padding:6px;border-radius:var(--rs);font-size:12px;font-weight:700;cursor:pointer;border:1px solid var(--br2);background:var(--sf);color:var(--tx)">↻ Sync Now</button></div></div><div class="tabs"><div class="tab ${tab==='snapshot'?'on':''}" onclick="sw('snapshot')">Essentials</div><div class="tab ${tab==='fixed'?'on':''}" onclick="sw('fixed')">Fixed</div><div class="tab ${tab==='savings'?'on':''}" onclick="sw('savings')">Savings</div><div class="tab ${tab==='history'?'on':''}" onclick="sw('history')">History</div><div class="tab ${tab==='chart'?'on':''}" onclick="sw('chart')">Chart</div><div class="tab ${tab==='settings'?'on':''}" onclick="sw('settings')">Settings</div><div class="tab ${tab==='guide'?'on':''}" onclick="sw('guide')">Guide</div></div>`;
+  const _h=document.getElementById('hdr');
+  if(_h)document.documentElement.style.setProperty('--hdr-h',(_h.offsetHeight||160)+'px');
+  document.getElementById('app').innerHTML=content;
+
+
+  rebuildCG();
+
+}
+
+function setAddMode(mode){
+  addMode=mode;sel=null;
+  const eb=document.getElementById('addModeEss');
+  const fb=document.getElementById('addModeFix');
+  if(eb){eb.style.background=mode==='essentials'?'var(--tx)':'transparent';eb.style.color=mode==='essentials'?'var(--bg)':'var(--tx2)';}
+  if(fb){fb.style.background=mode==='fixed'?'var(--tx)':'transparent';fb.style.color=mode==='fixed'?'var(--bg)':'var(--tx2)';}
+  rebuildCG();
+}
+function rebuildCG(){
+  const g=document.getElementById('cg');if(!g)return;
+  const cats=addMode==='fixed'?CATS.filter(c=>c.fixed):CATS.filter(c=>c.tracked);
+  g.innerHTML=cats.map(c=>`<div class="co${sel===c.id?' sel':''}" onclick="pickC('${c.id}')">${c.icon}<br><span style="font-size:10px">${c.label}</span></div>`).join('');
+}
+function pickC(id){sel=id;rebuildCG();}
+
+function openEdit(pk,id,e){
+  if(e)e.stopPropagation();
+  const data=D();
+  const tx=((data.periods||{})[pk]?.transactions||[]).find(t=>String(t.id)===String(id));
+  if(!tx)return;
+  editTx=tx;editPk=pk;editSel=tx.catId;
+  // Pre-fill fields
+  document.getElementById('editAmt').value=tx.amount;
+  document.getElementById('editDesc').value=tx.description||'';
+  // Convert ISO date to DD/MM/YYYY
+  const[y,m,d]=(tx.date||pk).split('-');
+  document.getElementById('editDate').value=d+'/'+m+'/'+y;
+  // Build category grid
+  const g=document.getElementById('editCg');
+  g.innerHTML=CATS.filter(c=>c.tracked||c.fixed).map(c=>`<div class="co${editSel===c.id?' sel':''}" onclick="editSel='${c.id}';document.querySelectorAll('#editCg .co').forEach(x=>x.classList.remove('sel'));this.classList.add('sel')">${c.icon}<br><span style="font-size:10px">${c.label}</span></div>`).join('');
+  document.getElementById('editOv').classList.add('open');
+}
+
+async function saveEdit(){
+  if(!editTx||!editPk)return;
+  const amt=parseFloat(document.getElementById('editAmt').value);
+  const desc=document.getElementById('editDesc').value.trim();
+  const dateStr=document.getElementById('editDate').value.trim();
+  if(!amt||amt<=0){alert('Enter a valid amount');return;}
+  // Parse DD/MM/YYYY back to ISO
+  let isoDate=editPk;
+  if(dateStr&&dateStr.includes('/')){
+    const[dd,mm,yyyy]=dateStr.split('/');
+    if(dd&&mm&&yyyy)isoDate=yyyy+'-'+mm.padStart(2,'0')+'-'+dd.padStart(2,'0');
+  }
+  // Determine if date change moves to different period
+  const newPk=getPK(getPO(isoDate));
+  const data=D();
+  // Remove from old period
+  if(data.periods&&data.periods[editPk]){
+    data.periods[editPk].transactions=data.periods[editPk].transactions.filter(t=>String(t.id)!==String(editTx.id));
+  }
+  // Add to new period (may be same or different)
+  if(!data.periods[newPk])data.periods[newPk]={transactions:[]};
+  data.periods[newPk].transactions.push({
+    id:editTx.id,
+    catId:editSel||editTx.catId,
+    amount:Math.round(amt*100)/100,
+    description:desc||editSel,
+    date:isoDate,
+    _ts:Date.now()
+  });
+  saveLocal(data);
+  clearTimeout(syncTimer);
+  await cloudPut(data);
+  setSyncStatus('ok');
+  closeOv('editOv');
+  closeOv('catOv');
+  render();
+}
+
+function openAdd(preselCat){
+  const presetting=!!preselCat;
+  if(!presetting){sel=null;addMode='essentials';}
+  else{sel=preselCat;}
+  document.getElementById('amt').value='';
+  document.getElementById('desc').value='';
+  document.getElementById('addDate').value='';
+  document.getElementById('addOv').classList.add('open');
+  const modeBar=document.getElementById('addModeBar');
+  if(modeBar)modeBar.style.display=presetting?'none':'flex';
+  if(!presetting)setAddMode('essentials');
+  else{
+    const cat=CATS.find(c=>c.id===preselCat);
+    addMode=cat&&cat.fixed?'fixed':'essentials';
+    rebuildCG();
+  }
+  setTimeout(()=>document.getElementById('amt').focus(),150);
+}
+function saveExp(){
+  const amt=parseFloat(document.getElementById('amt').value);
+  const desc=document.getElementById('desc').value.trim()||sel;
+  const dateInput=(document.getElementById('addDate')?.value||'').trim();
+  if(!sel){alert('Pick a category');return;}
+  if(!amt||amt<=0){alert('Enter a valid amount');return;}
+  // Parse date field if provided (DD/MM/YY or DD/MM/YYYY)
+  let txDate=null,pk=retroPeriodKey||getPK(cur);
+  const isRetro=!!retroPeriodKey;retroPeriodKey=null;
+  if(dateInput&&dateInput.includes('/')){
+    const parts=dateInput.split('/');
+    if(parts.length===3){
+      const[dd,mm,yy]=parts;
+      const yyyy=yy.length===2?'20'+yy:yy;
+      txDate=yyyy+'-'+mm.padStart(2,'0')+'-'+dd.padStart(2,'0');
+      pk=getPK(getPO(txDate));
+    }
+  }
+  if(!txDate){
+    // Use today's local date
+    const n=new Date();
+    txDate=n.getFullYear()+'-'+String(n.getMonth()+1).padStart(2,'0')+'-'+String(n.getDate()).padStart(2,'0');
+  }
+  const data=D();
+  if(addMode==='savings'){
+    if(!data.savWithdrawals)data.savWithdrawals=[];
+    const w={id:Date.now(),savId:sel,amount:Math.round(amt*100)/100,description:desc,date:txDate,_ts:Date.now()};
+    data.savWithdrawals.push(w);
+    saveLocal(data);closeOv('addOv');schedulePush();render();
+    return;
+  }
+  if(!data.periods[pk])data.periods[pk]={transactions:[]};
+  const tx={id:Date.now(),catId:sel,amount:Math.round(amt*100)/100,description:desc,date:txDate,_ts:Date.now()};
+  data.periods[pk].transactions.push(tx);
+  saveLocal(data);closeOv('addOv');schedulePush();render();
+}
+
+let catOvId=null,catOvOffset=null;
+function openCat(id,offset){
+  console.log('openCat called with:',id);
+  catOvId=id;
+  catOvOffset=offset!==undefined?offset:cur;
+  renderCatOv();
+  document.getElementById('catOv').classList.add('open');
+}
+function renderCatOv(){
+  const id=catOvId,offset=catOvOffset;
+  const cat=CATS.find(c=>c.id===id),data=D(),pk=getPK(offset);
+  const txs=((data.periods||{})[pk]?.transactions||[]).filter(t=>t.catId===id);
+  const bgt=fb(id,pk),cr=carry(data,pk,id),sp=ps(data,pk,id),av=bgt+cr-sp;
+  const s=av<0?'over':av<bgt*0.2?'warn':'ok';
+  const totSp=totalSpentAll(data,id),totBgt=totalBudgetAll(id,cur);
+  const periodLbl=getPL(offset);
+  const maxOffset=getCO();
+  const txHtml=txs.length===0?`<p style="color:var(--tx2);font-size:14px;text-align:center;padding:16px 0">No transactions this week</p>`:txs.sort((a,b)=>b.date.localeCompare(a.date)).map(t=>`<div class="tx-item"><div><div class="tx-d">${t.description}</div><div class="tx-m">${fmtDate(t.date)}</div></div><div style="display:flex;align-items:center;gap:6px"><span class="tx-a">-${fm2(t.amount)}</span><button class="tx-del" onclick="openEdit('${pk}','${t.id}')" style="background:var(--Bbg);color:var(--Btx);margin-right:4px;font-size:12px">Edit</button><button class="tx-del" onclick="delTx('${pk}','${t.id}')">Del</button></div></div>`).join('');
+  document.getElementById('catTitle').textContent=`${cat.icon} ${cat.label}`;
+  document.getElementById('catBody').innerHTML=`
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+      <button class="bw" style="padding:4px 12px;font-size:18px" onclick="openCat('${id}',${offset-1})" ${offset<=0?'disabled':''}>‹</button>
+      <span style="font-size:13px;color:var(--tx2);text-align:center">${periodLbl}</span>
+      <button class="bw" style="padding:4px 12px;font-size:18px" onclick="openCat('${id}',${offset+1})" ${offset>=maxOffset?'disabled':''}>›</button>
+    </div>
+    <div style="display:flex;gap:8px;margin-bottom:12px">
+      <div class="stat3"><div class="s3l">This week</div><div class="s3v">${fm(bgt)}</div><div style="font-size:10px;color:var(--tx3)">${fm(bgt*52/12)}/mth</div></div>
+      <div class="stat3"><div class="s3l">Carry over</div><div class="s3v" style="color:${cr>=0?'var(--G)':'var(--R)'}">${cr>=0?'+':'-'}${fm(Math.abs(cr))}</div></div>
+      <div class="stat3"><div class="s3l">Available</div><div class="s3v ${s}">${av<0?'-':''}${fm(Math.abs(av))}</div></div>
+    </div>
+    <div style="font-size:11px;color:var(--tx3);margin-bottom:14px">Overall: ${fm(totSp)} spent of ${fm(totBgt)} budget since 7 Aug 2026</div>
+    <div style="display:flex;gap:8px;margin-bottom:12px"><button class="bw" style="flex:1" onclick="closeOv('catOv');openAdd('${id}')">+ Add</button><button class="bw" style="flex:1" onclick="closeOv('catOv')">✕ Close</button></div>
+    <div style="font-size:10px;font-weight:700;color:var(--tx3);letter-spacing:.6px;text-transform:uppercase;margin-bottom:8px">Transactions</div>
+    ${txHtml}`;
+}
+
+async function delTx(pk,id){
+  const data=D();
+  if(data.periods&&data.periods[pk]){
+    // Mark as _deleted with timestamp so merge sync on other devices respects the deletion
+    const tx=data.periods[pk].transactions.find(t=>String(t.id)===String(id)||Number(t.id)===Number(id));
+    if(tx){tx._deleted=true;tx._ts=Date.now();}
+  }
+  saveLocal(data);
+  // Immediately push so the deletion flag reaches the Gist before any other device syncs
+  clearTimeout(syncTimer);
+  try{await cloudPut(data);setSyncStatus('ok');}catch(e){setSyncStatus('off');}
+  closeOv('catOv');render();
+}
+
+function togglePeriod(pk){if(expandedPeriods.has(pk))expandedPeriods.delete(pk);else expandedPeriods.add(pk);render();}
+async function histDelTx(pk,id,e){
+  e.stopPropagation();
+  e.preventDefault();
+  const data=D();
+  if(data.periods&&data.periods[pk]){
+    data.periods[pk].transactions=data.periods[pk].transactions.filter(
+      t=>String(t.id)!==String(id)&&Number(t.id)!==Number(id)
+    );
+  }
+  saveLocal(data);
+  clearTimeout(syncTimer);
+  await cloudPut(data);
+  setSyncStatus('ok');
+  render();
+}
+function openRetroAdd(pk,e){
+  e.stopPropagation();retroPeriodKey=pk;sel=null;
+  document.getElementById('amt').value='';document.getElementById('desc').value='';
+  document.getElementById('addOv').classList.add('open');rebuildCG();
+  setTimeout(()=>document.getElementById('amt').focus(),150);
+}
+
+function exportData(){
+  const data=D();
+  const rows=[['Date','Period','Category','Type','Description','Amount']];
+  const periods=data.periods||{};
+  Object.keys(periods).sort().forEach(pk=>{
+    const lbl=getPL(getPO(pk));
+    (periods[pk].transactions||[]).filter(t=>!t._deleted).sort((a,b)=>a.date.localeCompare(b.date)).forEach(t=>{
+      const cat=CATS.find(c=>c.id===t.catId);
+      const type=cat?(cat.fixed?'Fixed':'Essentials'):'Unknown';
+      rows.push([t.date,lbl,cat?cat.label:t.catId,type,t.description||'',t.amount]);
+    });
+  });
+  // Add savings withdrawals
+  (data.savWithdrawals||[]).filter(w=>!w._deleted).sort((a,b)=>a.date.localeCompare(b.date)).forEach(w=>{
+    const sav=SAVINGS.find(s=>s.id===w.savId);
+    rows.push([w.date,'',sav?sav.label:w.savId,'Savings Withdrawal',w.description||'',-w.amount]);
+  });
+  const csv=rows.map(r=>r.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(',')).join('\n');
+  const blob=new Blob([csv],{type:'text/csv'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='budget_export_'+new Date().toISOString().slice(0,10)+'.csv';a.click();
+}
+async function confirmReset(){
+  if(!confirm('Clear all transaction data?\n\nThis removes all transactions from this device and the cloud. Cannot be undone.'))return;
+  const empty={periods:{}};
+  localStorage.setItem(SK,JSON.stringify(empty));
+  // Push empty data to cloud immediately so other devices also clear
+  const cfg=getSyncCfg();
+  if(cfg.token&&cfg.gistId){
+    setSyncStatus('ing');
+    const ok=await cloudPut(empty);
+    setSyncStatus(ok?'ok':'off');
+  }
+  render();
+  alert('✅ All transaction data cleared.');
+}
+
+document.addEventListener('click',e=>{document.querySelectorAll('.ov').forEach(o=>{if(e.target===o)o.classList.remove('open');});});
+
+async function manualSync(){
+  setSyncStatus('ing');
+  await syncNow();
+  render();
+  alert(syncState==='ok'?'✅ Sync successful! All devices are up to date.':'❌ Sync failed. Check your internet connection and try again.');
+}
+
+async function fixSync(){
+  if(!confirm('This will create a brand new Gist and reconnect all devices.\n\nYou will need to re-enter the new Gist ID on any other connected device afterwards.\n\nContinue?'))return;
+  const cfg=getSyncCfg();
+  if(!cfg.token){alert('No GitHub token found. Please use Set up cloud sync first.');return;}
+  setSyncStatus('ing');render();
+  try{
+    const local=loadRaw();
+    const gistId=await cloudCreateGist(cfg.token);
+    if(!gistId){alert('Failed to create Gist. Check your token and internet connection.');setSyncStatus('off');return;}
+    await cloudPut(local);
+    setSyncCfg({token:cfg.token,gistId});
+    setSyncStatus('ok');render();
+    alert('✅ New Gist created!\n\nGist ID: '+gistId+'\n\n--- NEXT STEPS ---\nOn the other device:\n1. Open Budget app\n2. Settings → Set up cloud sync\n3. Enter the same GitHub token\n4. Tap "Already set up on another device"\n5. Enter this Gist ID: '+gistId+'\n6. Tap Connect\n\nSave this Gist ID somewhere safe.');
+  }catch(e){alert('Error: '+e.message);setSyncStatus('off');}
+  render();
+}
+
+
+function migratePeriodsIfNeeded(){
+  // One-time fix: old getPK used toISOString() (UTC) so keys were 1 day behind
+  // in AEST (UTC+10). This migrates '2026-06-02' → '2026-06-03' etc.
+  const data=loadRaw();
+  if(!data.periods||Object.keys(data.periods).length===0)return false;
+  // Check if any keys are "off by one" compared to what getPK now returns
+  // A key is old-style if shifting it by +1 day matches a valid getPK() output
+  let migrated=false;
+  const newPeriods={};
+  Object.keys(data.periods).forEach(k=>{
+    // Parse the key date and add 1 day
+    const[y,m,d]=k.split('-').map(Number);
+    const shifted=new Date(y,m-1,d+1);
+    const newKey=shifted.getFullYear()+'-'+String(shifted.getMonth()+1).padStart(2,'0')+'-'+String(shifted.getDate()).padStart(2,'0');
+    // Check if the shifted key aligns with a valid week (getPO(newKey) gives integer*7 days from PS)
+    const dd=(new Date(shifted)-new Date(PS.getFullYear(),PS.getMonth(),PS.getDate()))/(864e5);
+    const isValid=(dd>=0&&Math.round(dd)%7===0);
+    // Also check the original key does NOT align (confirming it was off)
+    const ddOrig=(new Date(y,m-1,d)-new Date(PS.getFullYear(),PS.getMonth(),PS.getDate()))/(864e5);
+    const origValid=(ddOrig>=0&&Math.round(ddOrig)%7===0);
+    if(isValid&&!origValid){
+      newPeriods[newKey]=data.periods[k];
+      migrated=true;
+    }else{
+      newPeriods[k]=data.periods[k];
+    }
+  });
+  if(migrated){
+    data.periods=newPeriods;
+    saveLocal(data);
+    console.log('Period keys migrated to local dates');
+    return true;
+  }
+  return false;
+}
+
+window.onload=async function(){
+  // ONE-TIME CLEANUP: remove phantom 2026-07-15 transactions from local storage
+  if(!localStorage.getItem('bgt_v27_cleanup1')){
+    const _cd=JSON.parse(localStorage.getItem('bgt_v27')||'{"periods":{}}');
+    const _bi=["1782873391026","1782873403735","1782873421661"];
+    const _pk='2026-07-15';
+    if(_cd.periods&&_cd.periods[_pk]&&_cd.periods[_pk].transactions){
+      _cd.periods[_pk].transactions=_cd.periods[_pk].transactions.filter(function(t){return _bi.indexOf(String(t.id))===-1;});
+      if(_cd.periods[_pk].transactions.length===0)delete _cd.periods[_pk];
+    }
+    localStorage.setItem('bgt_v27',JSON.stringify(_cd));
+    localStorage.setItem('bgt_v27_cleanup1','done');
+  }
+  // Migrate old UTC-based period keys to local date keys (one-time fix)
+  const wasMigrated=migratePeriodsIfNeeded();
+  // On load: pull from cloud once and merge, then local is source of truth
+  render();
+  await syncNow();
+  if(wasMigrated)await cloudPut(loadRaw()); // push migrated data to cloud
+  render();
+  // Every 3 minutes: push local state to cloud (no pull, no merge)
+  setInterval(()=>pushOnly(), 180000);
+  // Swipe on #hdr - position:fixed, iOS always delivers touches to fixed elements
+  const tabList=['snapshot','fixed','savings','history','chart','settings','guide'];
+  let swX=0,swY=0;
+  const hdrDiv=document.getElementById('hdr');
+  hdrDiv.addEventListener('touchstart',e=>{swX=e.touches[0].clientX;swY=e.touches[0].clientY;},{passive:true});
+  hdrDiv.addEventListener('touchend',e=>{
+    const dx=e.changedTouches[0].clientX-swX;
+    const dy=e.changedTouches[0].clientY-swY;
+    if(Math.abs(dx)>30&&Math.abs(dx)>Math.abs(dy)){
+      const i=tabList.indexOf(tab);
+      if(dx<0&&i<tabList.length-1){tab=tabList[i+1];render();}
+      else if(dx>0&&i>0){tab=tabList[i-1];render();}
+    }
+  },{passive:true});
+  function attachTabSwipe(){}
+};
+
+async function pushOnly(){
+  const cfg=getSyncCfg();
+  if(!cfg.token||!cfg.gistId)return;
+  if(isSyncing)return;
+  setSyncStatus('ing');
+  const ok=await cloudPut(loadRaw());
+  setSyncStatus(ok?'ok':'off');
+}
+
+// ── SERVICE WORKER REGISTRATION ──
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('/budget/SW-Gem.js',{scope:'/budget/Gems-budget.html'}).then(reg=>{
+    reg.addEventListener('updatefound',()=>{
+      const newWorker=reg.installing;
+      newWorker.addEventListener('statechange',()=>{
+        if(newWorker.state==='installed'&&navigator.serviceWorker.controller){
+          // New version available - reload automatically
+          window.location.reload();
+        }
+      });
+    });
+  });
+}
+</script>
+</body>
+</html>
