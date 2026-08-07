@@ -1,6 +1,6 @@
 // Service Worker — Gem's Budget App
 // Update CACHE_VERSION every time you upload a new Gems-budget.html
-const CACHE_VERSION = 'v2';
+const CACHE_VERSION = 'v3';
 const CACHE_NAME = 'gems-budget-' + CACHE_VERSION;
 const APP_URL = '/budget/Gems-budget.html';
 
