@@ -171,24 +171,24 @@ const TS=new Date(2026,5,3);// Jun 3 local midnight
 const CATS=[
   {id:'groceries',  label:'Groceries',        icon:'🛒',weekly:550,  tracked:true,
     steps:[{from:'2026-07-01',weekly:525},{from:'2026-12-30',weekly:540}]},
-  {id:'eatingout',  label:'Eating Out',        icon:'🍽',weekly:70,   tracked:true,
-    steps:[{from:'2026-07-01',weekly:65}]},
-  {id:'alcohol',    label:'Alcohol',           icon:'🍷',weekly:35,   tracked:true},
+  {id:'medical',    label:'Medical',           icon:'🏥',weekly:100,  tracked:true,
+    steps:[{from:'2026-07-01',weekly:250}]},
+  {id:'petrolcar',  label:'Petrol / Car',      icon:'⛽',weekly:100,  tracked:true},
   {id:'gifts',      label:'Gifts',             icon:'🎁',weekly:35,   tracked:true,
     steps:[{from:'2026-07-01',weekly:125},{from:'2026-12-30',weekly:62.5}]},
-  {id:'clothes',    label:'Clothes',           icon:'👕',weekly:65,   tracked:true,
-    steps:[{from:'2026-07-01',weekly:55}]},
+  {id:'house',      label:'House Purchases',   icon:'🏠',weekly:50,   tracked:true},
+  {id:'houserepairs',label:'House Repairs',    icon:'🔧',weekly:40,   tracked:true},
   {id:'beauty',     label:'Beauty',            icon:'💅',weekly:70,   tracked:true,
     steps:[{from:'2026-07-01',weekly:55}]},
-  {id:'house',      label:'House Purchases',   icon:'🏠',weekly:50,   tracked:true},
-  {id:'houserepairs',label:'House Repairs',     icon:'🔧',weekly:40,   tracked:true},
-  {id:'entertain',  label:'Going Out',         icon:'🎭',weekly:25,   tracked:true,
-    steps:[{from:'2026-07-01',weekly:20}]},
-  {id:'uber',       label:'Uber / Taxi',       icon:'🚗',weekly:10,   tracked:true},
-  {id:'petcare',    label:'Pet Care',          icon:'🐾',weekly:17.5, tracked:true,
-    steps:[{from:'2026-07-01',weekly:15}]},
+  {id:'clothes',    label:'Clothes',           icon:'👕',weekly:65,   tracked:true,
+    steps:[{from:'2026-07-01',weekly:55}]},
   {id:'pttolls',    label:'PT/Tolls/Parking',  icon:'🚌',weekly:23,   tracked:true},
-  {id:'petrolcar',  label:'Petrol / Car',      icon:'⛽',weekly:100,  tracked:true},
+  {id:'uber',       label:'Uber / Taxi',       icon:'🚗',weekly:10,   tracked:true},
+  {id:'eatingout',  label:'Eating Out',        icon:'🍽',weekly:70,   tracked:true,
+    steps:[{from:'2026-07-01',weekly:65}]},
+  {id:'entertain',  label:'Going Out',         icon:'🎭',weekly:20,   tracked:true},
+  {id:'petcare',    label:'Pet Care',          icon:'🐾',weekly:15,   tracked:true},
+  {id:'alcohol',    label:'Alcohol',           icon:'🍷',weekly:35,   tracked:true},
   {id:'newtreats',  label:'Treats',            icon:'🍬',weekly:0,    tracked:true,
     steps:[{from:'2026-12-30',weekly:10}]},
   {id:'kidsschool', label:'Kids School',       icon:'📚',weekly:65,   tracked:false,fixed:true},
@@ -200,9 +200,7 @@ const CATS=[
   {id:'accountant', label:'Tax Accountant',    icon:'📋',weekly:4,    tracked:false,fixed:true},
   {id:'pestcontrol',label:'Pest Control',      icon:'🪲',weekly:3.5,  tracked:false,fixed:true},
   {id:'unionfees',  label:'Union / Donations', icon:'🤝',weekly:23,   tracked:false,fixed:true},
-  {id:'medical',    label:'Medical',           icon:'🏥',weekly:100,  tracked:true,
-    steps:[{from:'2026-07-01',weekly:250}]},
-  {id:'bankfees',   label:'Bank Fees',         icon:'🏦',weekly:4,    tracked:false,fixed:true},
+  {id:'bankfees',   label:'Bank Fees',         icon:'🏦',weekly:3.5,  tracked:false,fixed:true},
 ];
 
 const SAVINGS=[
@@ -611,7 +609,7 @@ function delSavTx(savId,id){
 function render(){
   const data=D(),pk=getPK(cur),isNow=cur===getCO();
   const pdDate=new Date(pk+'T12:00:00');
-  const tracked=CATS.filter(c=>c.tracked&&weeklyAt(c.id,pk)>0).sort((a,b)=>weeklyAt(b.id,pk)-weeklyAt(a.id,pk)),fixed=CATS.filter(c=>c.fixed&&weeklyAt(c.id,pk)>0).sort((a,b)=>weeklyAt(b.id,pk)-weeklyAt(a.id,pk));
+  const tracked=CATS.filter(c=>c.tracked&&weeklyAt(c.id,pk)>0),fixed=CATS.filter(c=>c.fixed&&weeklyAt(c.id,pk)>0).sort((a,b)=>weeklyAt(b.id,pk)-weeklyAt(a.id,pk));
   let totAvail=0,totBgt=0,totSp=0,totCumSp=0,totCumBgt=0;
   tracked.forEach(c=>{
     totAvail+=avail(data,pk,c.id);
@@ -659,6 +657,18 @@ function render(){
     <div class="sec"><div class="sq-grid">${sq}</div>
     </div>`;
   }else if(tab==='history'){
+    // Combined status: essentials + fixed
+    const allCats=[...tracked,...fixed];
+    const combBgt=allCats.reduce((s,c)=>s+fb(c.id,pk),0);
+    const combSp=allCats.reduce((s,c)=>s+ps(data,pk,c.id),0);
+    const combFnDef=combSp-combBgt;
+    const combFnCls=combFnDef>0?'var(--R)':'var(--G)';
+    const combFnLbl=combFnDef>0?'▲ Over by':'▼ Under by';
+    const combCumBgt=allCats.reduce((s,c)=>s+totalBudgetAll(c.id,cur),0);
+    const combCumSp=allCats.reduce((s,c)=>s+totalSpentAll(data,c.id),0);
+    const combOvDef=combCumSp-combCumBgt;
+    const combOvCls=combOvDef>0?'var(--R)':'var(--G)';
+    const combOvLbl=combOvDef>0?'▲ Over by':'▼ Under by';
     const startPK=getPK(0),periods=data.periods||{},pkeys=Object.keys(periods).filter(k=>k>=startPK).sort().reverse();
     const rows=pkeys.length===0?`<p style="color:var(--tx2);font-size:14px;text-align:center;padding:24px 0">No history yet</p>`:pkeys.map(k=>{
       const idx=getPO(k),txs=(periods[k]?.transactions||[]).sort((a,b)=>b.date.localeCompare(a.date));
@@ -669,7 +679,7 @@ function render(){
       const txRows=txs.map(t=>{const cat=CATS.find(c=>c.id===t.catId);return`<div class="htx-row"><div class="htx-cat">${cat?cat.icon:''} <span style="font-size:11px;color:var(--tx2)">${cat?cat.label:'?'}</span></div><div class="htx-desc">${t.description||t.catId}</div><div style="display:flex;align-items:center;gap:6px"><span class="htx-amt">-${fm2(t.amount)}</span><span style="font-size:10px;color:var(--tx3)">${fmtDate(t.date)}</span><button class="htx-del" onclick="openEdit('${k}','${t.id}',event)" style="background:var(--Bbg);color:var(--Btx);border-color:var(--B);margin-right:4px">Edit</button><button class="htx-del" onclick="histDelTx('${k}','${t.id}',event)">Del</button></div></div>`;}).join('');
       return`<div class="hist-card"><div class="hist-banner" onclick="togglePeriod('${k}')"><div><div style="font-size:14px;font-weight:700">${getPL(idx)}</div><div style="font-size:12px;color:var(--tx2);margin-top:2px">${txs.length} transaction${txs.length!==1?'s':''}</div></div><div style="display:flex;align-items:center;gap:8px"><span class="chip ${cs}">${fm(tot)}</span><span style="font-size:16px;color:var(--tx3);${isExp?'transform:rotate(180deg)':''}">⌄</span></div></div>${isExp?`<div class="htx-list">${txRows}<button class="htx-add-btn" onclick="openRetroAdd('${k}',event)">+ Add transaction to this period</button></div>`:''}</div>`;
     }).join('');
-    content=`<div class="sec"><div class="sec-hd">All fortnights</div>${rows}</div>`;
+    content=`<div class="sum-row"><div class="scard"><div class="sc-lbl">Status this fn</div><div class="sc-val" style="color:${combFnCls}">${combFnLbl} ${fm(Math.abs(combFnDef))}</div></div><div class="scard"><div class="sc-lbl">Overall position</div><div class="sc-val" style="color:${combOvCls}">${combOvLbl} ${fm(Math.abs(combOvDef))}</div></div></div><div class="sec"><div class="sec-hd">All fortnights</div>${rows}</div>`;
   }else if(tab==='chart'){
     const startPK2=getPK(0),allPks=Object.keys(data.periods||{}).filter(k=>k>=startPK2).sort();
     if(!allPks.includes(getPK(getCO()))&&allPks.length>0)allPks.push(getPK(getCO()));
@@ -720,12 +730,13 @@ function render(){
     <div class="ibox iam"><p>When your 28 Degrees statement arrives (6th of each month), open a new Claude chat, say <em>"Process my statement for budget tracker – export as JSON"</em> and attach the PDF. Paste the JSON here — transactions land in the correct fortnights automatically.</p></div>
     <button class="bw" onclick="document.getElementById('impOv').classList.add('open')">📄 Paste Statement JSON</button>
     <button class="bw" onclick="exportData()">📊 Export CSV</button>
+      <button class="bw" style="margin-top:6px" onclick="generateSnapshot()">📸 Spending Snapshot</button>
     </div>
     <div class="sec"><div class="sec-hd">Fortnightly budgets</div>
     <div style="background:var(--sf);border:1px solid var(--br);border-radius:var(--rad);padding:12px 14px">
       ${CATS.map(c=>`<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--br);font-size:13px"><span>${c.icon} ${c.label}${c.fixed?' <span style="color:var(--tx3);font-size:10px">fixed</span>':''}</span><span style="font-weight:700">${fm(c.weekly*2)}/fn</span></div>`).join('')}
     </div></div>
-    <div class="sec"><button onclick="confirmReset()" style="width:100%;padding:12px;border-radius:var(--rs);font-size:14px;font-weight:600;cursor:pointer;border:1px solid var(--R);background:var(--Rbg);color:var(--Rtx)">Reset to Factory</button></div><div style="text-align:center;padding:8px;font-size:10px;color:var(--tx3)">Version updated 03 Aug 2026 20:56</div>`;
+    <div class="sec"><button onclick="confirmReset()" style="width:100%;padding:12px;border-radius:var(--rs);font-size:14px;font-weight:600;cursor:pointer;border:1px solid var(--R);background:var(--Rbg);color:var(--Rtx)">Reset to Factory</button></div><div style="text-align:center;padding:8px;font-size:10px;color:var(--tx3)">Version updated 15 Aug 2026 05:57</div>`;
   }else if(tab==='guide'){
     content=`<div class="sec">
 
@@ -797,12 +808,13 @@ function render(){
     <div class="ibox iam"><p>When your 28 Degrees statement arrives (6th of each month), open a new Claude chat, say <em>"Process my statement for budget tracker – export as JSON"</em> and attach the PDF. Paste the JSON here — transactions land in the correct fortnights automatically.</p></div>
     <button class="bw" onclick="document.getElementById('impOv').classList.add('open')">📄 Paste Statement JSON</button>
     <button class="bw" onclick="exportData()">📊 Export CSV</button>
+      <button class="bw" style="margin-top:6px" onclick="generateSnapshot()">📸 Spending Snapshot</button>
     </div>
     <div class="sec"><div class="sec-hd">Fortnightly budgets</div>
     <div style="background:var(--sf);border:1px solid var(--br);border-radius:var(--rad);padding:12px 14px">
       ${CATS.map(c=>`<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--br);font-size:13px"><span>${c.icon} ${c.label}${c.fixed?' <span style="color:var(--tx3);font-size:10px">fixed</span>':''}</span><span style="font-weight:700">${fm(c.weekly*2)}/fn</span></div>`).join('')}
     </div></div>
-    <div class="sec"><button onclick="confirmReset()" style="width:100%;padding:12px;border-radius:var(--rs);font-size:14px;font-weight:600;cursor:pointer;border:1px solid var(--R);background:var(--Rbg);color:var(--Rtx)">Reset to Factory</button></div><div style="text-align:center;padding:8px;font-size:10px;color:var(--tx3)">Version updated 03 Aug 2026 20:56</div>`;
+    <div class="sec"><button onclick="confirmReset()" style="width:100%;padding:12px;border-radius:var(--rs);font-size:14px;font-weight:600;cursor:pointer;border:1px solid var(--R);background:var(--Rbg);color:var(--Rtx)">Reset to Factory</button></div><div style="text-align:center;padding:8px;font-size:10px;color:var(--tx3)">Version updated 15 Aug 2026 05:57</div>`;
   }else if(tab==='guide'){
     content=`<div class="sec">
 
@@ -896,12 +908,13 @@ function render(){
     <div class="ibox iam"><p>When your 28 Degrees statement arrives (6th of each month), open a new Claude chat, say <em>"Process my statement for budget tracker – export as JSON"</em> and attach the PDF. Paste the JSON here — transactions land in the correct fortnights automatically.</p></div>
     <button class="bw" onclick="document.getElementById('impOv').classList.add('open')">📄 Paste Statement JSON</button>
     <button class="bw" onclick="exportData()">📊 Export CSV</button>
+      <button class="bw" style="margin-top:6px" onclick="generateSnapshot()">📸 Spending Snapshot</button>
     </div>
     <div class="sec"><div class="sec-hd">Fortnightly budgets</div>
     <div style="background:var(--sf);border:1px solid var(--br);border-radius:var(--rad);padding:12px 14px">
       ${CATS.map(c=>`<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--br);font-size:13px"><span>${c.icon} ${c.label}${c.fixed?' <span style="color:var(--tx3);font-size:10px">fixed</span>':''}</span><span style="font-weight:700">${fm(c.weekly*2)}/fn</span></div>`).join('')}
     </div></div>
-    <div class="sec"><button onclick="confirmReset()" style="width:100%;padding:12px;border-radius:var(--rs);font-size:14px;font-weight:600;cursor:pointer;border:1px solid var(--R);background:var(--Rbg);color:var(--Rtx)">Reset to Factory</button></div><div style="text-align:center;padding:8px;font-size:10px;color:var(--tx3)">Version updated 03 Aug 2026 20:56</div>`;
+    <div class="sec"><button onclick="confirmReset()" style="width:100%;padding:12px;border-radius:var(--rs);font-size:14px;font-weight:600;cursor:pointer;border:1px solid var(--R);background:var(--Rbg);color:var(--Rtx)">Reset to Factory</button></div><div style="text-align:center;padding:8px;font-size:10px;color:var(--tx3)">Version updated 15 Aug 2026 05:57</div>`;
   }else if(tab==='guide'){
     content=`<div class="sec">
     <div class="isec" style="background:var(--Bbg);border-radius:var(--rad);padding:14px 16px;margin-bottom:20px">
@@ -1169,6 +1182,87 @@ function doImport(){
   }catch(e){alert('Import failed: '+e.message);}
 }
 
+function generateSnapshot(){
+  const data=D();
+  const startLbl=PS.toLocaleDateString('en-AU',{day:'numeric',month:'short',year:'numeric'});
+  const todayLbl=new Date().toLocaleDateString('en-AU',{day:'numeric',month:'short',year:'numeric'});
+  const periodLbl=getPL(cur);
+
+  // Cumulative totals — essentials + fixed combined
+  const allCats=[...CATS.filter(c=>c.tracked||c.fixed)];
+  const catStats=allCats.map(c=>{
+    const spent=totalSpentAll(data,c.id);
+    const budget=totalBudgetAll(c.id,cur);
+    return{label:c.label,icon:c.icon,spent,budget,diff:budget-spent,fixed:!!c.fixed};
+  });
+  const totalSpent=catStats.reduce((s,c)=>s+c.spent,0);
+  const totalBudget=catStats.reduce((s,c)=>s+c.budget,0);
+  const overUnder=totalBudget-totalSpent;
+
+  // This fortnight only
+  const pk=getPK(cur);
+  const fnSpent=allCats.reduce((s,c)=>s+ps(data,pk,c.id),0);
+  const fnBudget=allCats.reduce((s,c)=>s+fb(c.id,pk),0);
+  const fnDiff=fnBudget-fnSpent;
+
+  // Top 10 categories by spend
+  const topCats=catStats.filter(c=>c.spent>0).sort((a,b)=>b.spent-a.spent).slice(0,10);
+  const maxSpent=topCats.length?topCats[0].spent:1;
+
+  // 8 largest single transactions
+  const allTx=[];
+  Object.entries(data.periods||{}).forEach(function([pkey,p]){
+    (p.transactions||[]).filter(function(t){return !t._deleted;}).forEach(function(t){
+      const cat=CATS.find(function(c){return c.id===t.catId;});
+      allTx.push({date:t.date,desc:t.description||(cat?cat.label:t.catId),amount:t.amount,cat:cat?cat.label:t.catId,icon:cat?cat.icon:'💳'});
+    });
+  });
+  const notable=allTx.sort(function(a,b){return b.amount-a.amount;}).slice(0,8);
+
+  const barsHtml=topCats.map(function(c){
+    const pct=Math.round((c.spent/maxSpent)*100);
+    const over=c.spent>c.budget;
+    return '<div style="margin-bottom:10px">'
+      +'<div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px">'
+      +'<span>'+c.icon+' '+c.label+'</span><span style="font-weight:700">'+fm(c.spent)+'</span></div>'
+      +'<div style="background:#EEEBE4;border-radius:4px;height:10px;overflow:hidden">'
+      +'<div style="width:'+pct+'%;height:100%;background:'+(over?'#A32D2D':'#1D9E75')+'"></div></div>'
+      +'</div>';
+  }).join('');
+
+  const notableRows=notable.map(function(t){
+    return '<tr><td style="padding:5px 8px;border-bottom:1px solid #EEE;font-size:12px">'+fmtDate(t.date)+'</td>'
+      +'<td style="padding:5px 8px;border-bottom:1px solid #EEE;font-size:12px">'+t.icon+' '+t.cat+'</td>'
+      +'<td style="padding:5px 8px;border-bottom:1px solid #EEE;font-size:12px">'+t.desc+'</td>'
+      +'<td style="padding:5px 8px;border-bottom:1px solid #EEE;font-size:12px;text-align:right;font-weight:700">'+fm(t.amount)+'</td></tr>';
+  }).join('');
+
+  const rpt='<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Family Budget Snapshot</title>'
+    +'<style>@page{size:A4;margin:16mm}'
+    +'body{font-family:-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif;color:#1A1917;max-width:750px;margin:0 auto;padding:20px}'
+    +'h1{font-size:22px;margin-bottom:2px}.sub{color:#6B6760;font-size:13px;margin-bottom:18px}'
+    +'.stats{display:flex;gap:12px;margin-bottom:20px}'
+    +'.stat{flex:1;background:#F7F5F0;border-radius:8px;padding:12px 14px}'
+    +'.stat-lbl{font-size:11px;color:#6B6760;margin-bottom:4px}.stat-val{font-size:19px;font-weight:700}'
+    +'h2{font-size:14px;margin:18px 0 8px;border-bottom:2px solid #1A1917;padding-bottom:4px}'
+    +'table{width:100%;border-collapse:collapse}th{text-align:left;padding:5px 8px;font-size:11px;color:#6B6760;border-bottom:1px solid #1A1917}'
+    +'@media print{body{padding:0}}</style></head><body>'
+    +'<h1>Family Budget Snapshot</h1>'
+    +'<div class="sub">Tracking since '+startLbl+' &middot; Generated '+todayLbl+'</div>'
+    +'<div class="stats">'
+    +'<div class="stat"><div class="stat-lbl">This fortnight ('+periodLbl+')</div><div class="stat-val" style="color:'+(fnDiff>=0?'#1D9E75':'#A32D2D')+'">'+(fnDiff>=0?'Under by ':'Over by ')+fm(Math.abs(fnDiff))+'</div></div>'
+    +'<div class="stat"><div class="stat-lbl">Total spent to date</div><div class="stat-val">'+fm(totalSpent)+'</div></div>'
+    +'<div class="stat"><div class="stat-lbl">'+(overUnder>=0?'Under by':'Over by')+' (overall)</div><div class="stat-val" style="color:'+(overUnder>=0?'#1D9E75':'#A32D2D')+'">'+fm(Math.abs(overUnder))+'</div></div>'
+    +'</div>'
+    +'<h2>Top Spending Categories</h2>'
+    +(barsHtml||'<p style="font-size:12px;color:#6B6760">No spending recorded yet.</p>')
+    +'<h2>Largest Single Transactions</h2>'
+    +(notable.length?'<table><thead><tr><th>Date</th><th>Category</th><th>Description</th><th style="text-align:right">Amount</th></tr></thead><tbody>'+notableRows+'</tbody></table>':'<p style="font-size:12px;color:#6B6760">No transactions yet.</p>')
+    +'</body></html>';
+
+  const blob=new Blob([rpt],{type:'text/html'});
+  window.open(URL.createObjectURL(blob),'_blank');
+}
 function exportData(){
   const data=D();
   const rows=[['Date','Period','Category','Type','Description','Amount']];
