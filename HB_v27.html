@@ -175,13 +175,14 @@ const CATS=[
     steps:[{from:'2026-07-01',weekly:250}]},
   {id:'petrolcar',  label:'Petrol / Car',      icon:'⛽',weekly:100,  tracked:true},
   {id:'gifts',      label:'Gifts',             icon:'🎁',weekly:35,   tracked:true,
-    steps:[{from:'2026-07-01',weekly:125},{from:'2026-12-30',weekly:62.5}]},
+    steps:[{from:'2026-07-01',weekly:125},{from:'2026-09-09',weekly:120},{from:'2026-12-30',weekly:62.5}]},
   {id:'house',      label:'House Purchases',   icon:'🏠',weekly:50,   tracked:true},
-  {id:'houserepairs',label:'House Repairs',    icon:'🔧',weekly:40,   tracked:true},
+  {id:'houserepairs',label:'House Repairs',    icon:'🔧',weekly:40,   tracked:true,
+    steps:[{from:'2026-09-09',weekly:30}]},
   {id:'beauty',     label:'Beauty',            icon:'💅',weekly:70,   tracked:true,
     steps:[{from:'2026-07-01',weekly:55}]},
   {id:'clothes',    label:'Clothes',           icon:'👕',weekly:65,   tracked:true,
-    steps:[{from:'2026-07-01',weekly:55}]},
+    steps:[{from:'2026-07-01',weekly:55},{from:'2026-09-09',weekly:50}]},
   {id:'pttolls',    label:'PT/Tolls/Parking',  icon:'🚌',weekly:23,   tracked:true},
   {id:'uber',       label:'Uber / Taxi',       icon:'🚗',weekly:10,   tracked:true},
   {id:'eatingout',  label:'Eating Out',        icon:'🍽',weekly:70,   tracked:true,
@@ -191,7 +192,8 @@ const CATS=[
   {id:'alcohol',    label:'Alcohol',           icon:'🍷',weekly:35,   tracked:true},
   {id:'newtreats',  label:'Treats',            icon:'🍬',weekly:0,    tracked:true,
     steps:[{from:'2026-12-30',weekly:10}]},
-  {id:'kidsschool', label:'Kids School',       icon:'📚',weekly:65,   tracked:false,fixed:true},
+  {id:'kidsschool', label:'Kids School',       icon:'📚',weekly:65,   tracked:false,fixed:true,
+    steps:[{from:'2026-09-09',weekly:52.5}]},
   {id:'kidssports', label:'Kids Sports',       icon:'⚽',weekly:60,   tracked:false,fixed:true},
   {id:'personalsubs',label:'Subscriptions',    icon:'📱',weekly:10,   tracked:false,fixed:true},
   {id:'pocketmoney',label:'Pocket Money',      icon:'💰',weekly:15,   tracked:false,fixed:true},
@@ -736,7 +738,7 @@ function render(){
     <div style="background:var(--sf);border:1px solid var(--br);border-radius:var(--rad);padding:12px 14px">
       ${CATS.map(c=>`<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--br);font-size:13px"><span>${c.icon} ${c.label}${c.fixed?' <span style="color:var(--tx3);font-size:10px">fixed</span>':''}</span><span style="font-weight:700">${fm(c.weekly*2)}/fn</span></div>`).join('')}
     </div></div>
-    <div class="sec"><button onclick="confirmReset()" style="width:100%;padding:12px;border-radius:var(--rs);font-size:14px;font-weight:600;cursor:pointer;border:1px solid var(--R);background:var(--Rbg);color:var(--Rtx)">Reset to Factory</button></div><div style="text-align:center;padding:8px;font-size:10px;color:var(--tx3)">Version updated 15 Aug 2026 05:57</div>`;
+    <div class="sec"><button onclick="confirmReset()" style="width:100%;padding:12px;border-radius:var(--rs);font-size:14px;font-weight:600;cursor:pointer;border:1px solid var(--R);background:var(--Rbg);color:var(--Rtx)">Reset to Factory</button></div><div style="text-align:center;padding:8px;font-size:10px;color:var(--tx3)">Version updated 31 Aug 2026 06:56</div>`;
   }else if(tab==='guide'){
     content=`<div class="sec">
 
@@ -814,7 +816,7 @@ function render(){
     <div style="background:var(--sf);border:1px solid var(--br);border-radius:var(--rad);padding:12px 14px">
       ${CATS.map(c=>`<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--br);font-size:13px"><span>${c.icon} ${c.label}${c.fixed?' <span style="color:var(--tx3);font-size:10px">fixed</span>':''}</span><span style="font-weight:700">${fm(c.weekly*2)}/fn</span></div>`).join('')}
     </div></div>
-    <div class="sec"><button onclick="confirmReset()" style="width:100%;padding:12px;border-radius:var(--rs);font-size:14px;font-weight:600;cursor:pointer;border:1px solid var(--R);background:var(--Rbg);color:var(--Rtx)">Reset to Factory</button></div><div style="text-align:center;padding:8px;font-size:10px;color:var(--tx3)">Version updated 15 Aug 2026 05:57</div>`;
+    <div class="sec"><button onclick="confirmReset()" style="width:100%;padding:12px;border-radius:var(--rs);font-size:14px;font-weight:600;cursor:pointer;border:1px solid var(--R);background:var(--Rbg);color:var(--Rtx)">Reset to Factory</button></div><div style="text-align:center;padding:8px;font-size:10px;color:var(--tx3)">Version updated 31 Aug 2026 06:56</div>`;
   }else if(tab==='guide'){
     content=`<div class="sec">
 
@@ -914,7 +916,7 @@ function render(){
     <div style="background:var(--sf);border:1px solid var(--br);border-radius:var(--rad);padding:12px 14px">
       ${CATS.map(c=>`<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--br);font-size:13px"><span>${c.icon} ${c.label}${c.fixed?' <span style="color:var(--tx3);font-size:10px">fixed</span>':''}</span><span style="font-weight:700">${fm(c.weekly*2)}/fn</span></div>`).join('')}
     </div></div>
-    <div class="sec"><button onclick="confirmReset()" style="width:100%;padding:12px;border-radius:var(--rs);font-size:14px;font-weight:600;cursor:pointer;border:1px solid var(--R);background:var(--Rbg);color:var(--Rtx)">Reset to Factory</button></div><div style="text-align:center;padding:8px;font-size:10px;color:var(--tx3)">Version updated 15 Aug 2026 05:57</div>`;
+    <div class="sec"><button onclick="confirmReset()" style="width:100%;padding:12px;border-radius:var(--rs);font-size:14px;font-weight:600;cursor:pointer;border:1px solid var(--R);background:var(--Rbg);color:var(--Rtx)">Reset to Factory</button></div><div style="text-align:center;padding:8px;font-size:10px;color:var(--tx3)">Version updated 31 Aug 2026 06:56</div>`;
   }else if(tab==='guide'){
     content=`<div class="sec">
     <div class="isec" style="background:var(--Bbg);border-radius:var(--rad);padding:14px 16px;margin-bottom:20px">
