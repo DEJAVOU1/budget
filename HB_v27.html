@@ -170,9 +170,9 @@ const TS=new Date(2026,5,3);// Jun 3 local midnight
 
 const CATS=[
   {id:'groceries',  label:'Groceries',        icon:'🛒',weekly:550,  tracked:true,
-    steps:[{from:'2026-07-01',weekly:525},{from:'2026-12-30',weekly:540}]},
+    steps:[{from:'2026-07-01',weekly:525},{from:'2026-09-09',weekly:537.5},{from:'2026-12-30',weekly:552.5}]},
   {id:'medical',    label:'Medical',           icon:'🏥',weekly:100,  tracked:true,
-    steps:[{from:'2026-07-01',weekly:250}]},
+    steps:[{from:'2026-07-01',weekly:250},{from:'2026-09-09',weekly:242.5}]},
   {id:'petrolcar',  label:'Petrol / Car',      icon:'⛽',weekly:100,  tracked:true},
   {id:'gifts',      label:'Gifts',             icon:'🎁',weekly:35,   tracked:true,
     steps:[{from:'2026-07-01',weekly:125},{from:'2026-09-09',weekly:120},{from:'2026-12-30',weekly:62.5}]},
@@ -194,7 +194,8 @@ const CATS=[
     steps:[{from:'2026-12-30',weekly:10}]},
   {id:'kidsschool', label:'Kids School',       icon:'📚',weekly:65,   tracked:false,fixed:true,
     steps:[{from:'2026-09-09',weekly:52.5}]},
-  {id:'kidssports', label:'Kids Sports',       icon:'⚽',weekly:60,   tracked:false,fixed:true},
+  {id:'kidssports', label:'Kids Sports',       icon:'⚽',weekly:60,   tracked:false,fixed:true,
+    steps:[{from:'2026-09-09',weekly:55}]},
   {id:'personalsubs',label:'Subscriptions',    icon:'📱',weekly:10,   tracked:false,fixed:true},
   {id:'pocketmoney',label:'Pocket Money',      icon:'💰',weekly:15,   tracked:false,fixed:true},
   {id:'funeralfund',label:'Funeral Fund',      icon:'🕯',weekly:50,   tracked:false,fixed:true},
@@ -207,8 +208,9 @@ const CATS=[
 
 const SAVINGS=[
   {id:'overseas2027',label:'Overseas Trip (one-off, active now)', weekly:100,  note:'Target ~$8,200 by Dec 2027',phase:'until2027',
-    steps:[{from:'2026-07-01',weekly:140},{from:'2026-12-30',weekly:163.5}]},
-  {id:'inheritance', label:"Kids' Shares",       weekly:190,  note:'Target $7,280/yr · into investment shares',phase:'always'},
+    steps:[{from:'2026-07-01',weekly:140},{from:'2026-09-09',weekly:130},{from:'2026-12-30',weekly:163.5}]},
+  {id:'inheritance', label:"Kids' Shares",       weekly:190,  note:'Target $7,280/yr · into investment shares',phase:'always',
+    steps:[{from:'2026-09-09',weekly:187.5}]},
   {id:'emergency',   label:'Emergency Fund',     weekly:50,   note:'$2,600/yr – shock absorber',phase:'always',
     steps:[{from:'2026-07-01',weekly:40},{from:'2026-12-30',weekly:50}]},
   {id:'renovation',  label:'Renovation Fund',    weekly:27.5,   note:'$1,560/yr for repairs',phase:'always',
@@ -738,7 +740,7 @@ function render(){
     <div style="background:var(--sf);border:1px solid var(--br);border-radius:var(--rad);padding:12px 14px">
       ${CATS.map(c=>`<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--br);font-size:13px"><span>${c.icon} ${c.label}${c.fixed?' <span style="color:var(--tx3);font-size:10px">fixed</span>':''}</span><span style="font-weight:700">${fm(c.weekly*2)}/fn</span></div>`).join('')}
     </div></div>
-    <div class="sec"><button onclick="confirmReset()" style="width:100%;padding:12px;border-radius:var(--rs);font-size:14px;font-weight:600;cursor:pointer;border:1px solid var(--R);background:var(--Rbg);color:var(--Rtx)">Reset to Factory</button></div><div style="text-align:center;padding:8px;font-size:10px;color:var(--tx3)">Version updated 31 Aug 2026 07:44</div>`;
+    <div class="sec"><button onclick="confirmReset()" style="width:100%;padding:12px;border-radius:var(--rs);font-size:14px;font-weight:600;cursor:pointer;border:1px solid var(--R);background:var(--Rbg);color:var(--Rtx)">Reset to Factory</button></div><div style="text-align:center;padding:8px;font-size:10px;color:var(--tx3)">Version updated 09 Sep 2026 07:05</div>`;
   }else if(tab==='guide'){
     content=`<div class="sec">
 
@@ -816,7 +818,7 @@ function render(){
     <div style="background:var(--sf);border:1px solid var(--br);border-radius:var(--rad);padding:12px 14px">
       ${CATS.map(c=>`<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--br);font-size:13px"><span>${c.icon} ${c.label}${c.fixed?' <span style="color:var(--tx3);font-size:10px">fixed</span>':''}</span><span style="font-weight:700">${fm(c.weekly*2)}/fn</span></div>`).join('')}
     </div></div>
-    <div class="sec"><button onclick="confirmReset()" style="width:100%;padding:12px;border-radius:var(--rs);font-size:14px;font-weight:600;cursor:pointer;border:1px solid var(--R);background:var(--Rbg);color:var(--Rtx)">Reset to Factory</button></div><div style="text-align:center;padding:8px;font-size:10px;color:var(--tx3)">Version updated 31 Aug 2026 07:44</div>`;
+    <div class="sec"><button onclick="confirmReset()" style="width:100%;padding:12px;border-radius:var(--rs);font-size:14px;font-weight:600;cursor:pointer;border:1px solid var(--R);background:var(--Rbg);color:var(--Rtx)">Reset to Factory</button></div><div style="text-align:center;padding:8px;font-size:10px;color:var(--tx3)">Version updated 09 Sep 2026 07:05</div>`;
   }else if(tab==='guide'){
     content=`<div class="sec">
 
@@ -916,7 +918,7 @@ function render(){
     <div style="background:var(--sf);border:1px solid var(--br);border-radius:var(--rad);padding:12px 14px">
       ${CATS.map(c=>`<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--br);font-size:13px"><span>${c.icon} ${c.label}${c.fixed?' <span style="color:var(--tx3);font-size:10px">fixed</span>':''}</span><span style="font-weight:700">${fm(c.weekly*2)}/fn</span></div>`).join('')}
     </div></div>
-    <div class="sec"><button onclick="confirmReset()" style="width:100%;padding:12px;border-radius:var(--rs);font-size:14px;font-weight:600;cursor:pointer;border:1px solid var(--R);background:var(--Rbg);color:var(--Rtx)">Reset to Factory</button></div><div style="text-align:center;padding:8px;font-size:10px;color:var(--tx3)">Version updated 31 Aug 2026 07:44</div>`;
+    <div class="sec"><button onclick="confirmReset()" style="width:100%;padding:12px;border-radius:var(--rs);font-size:14px;font-weight:600;cursor:pointer;border:1px solid var(--R);background:var(--Rbg);color:var(--Rtx)">Reset to Factory</button></div><div style="text-align:center;padding:8px;font-size:10px;color:var(--tx3)">Version updated 09 Sep 2026 07:05</div>`;
   }else if(tab==='guide'){
     content=`<div class="sec">
     <div class="isec" style="background:var(--Bbg);border-radius:var(--rad);padding:14px 16px;margin-bottom:20px">
@@ -1222,13 +1224,22 @@ function generateSnapshot(){
   const notable=allTx.sort(function(a,b){return b.amount-a.amount;}).slice(0,8);
 
   const barsHtml=topCats.map(function(c){
-    const pct=Math.round((c.spent/maxSpent)*100);
+    // Bar shows actual spend; marker pin shows the cumulative budget allocation
+    const scale=maxSpent>0?maxSpent:1;
+    const spentPct=Math.round(Math.min((c.spent/scale)*100,100));
+    const budgetPct=Math.round(Math.min((c.budget/scale)*100,100));
     const over=c.spent>c.budget;
-    return '<div style="margin-bottom:10px">'
+    const diff=c.budget-c.spent;
+    const diffStr=(diff>=0?'▼ '+fm(diff)+' remaining':'▲ '+fm(Math.abs(diff))+' over');
+    const diffCol=diff>=0?'#1D9E75':'#A32D2D';
+    return '<div style="margin-bottom:12px">'
       +'<div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px">'
-      +'<span>'+c.icon+' '+c.label+'</span><span style="font-weight:700">'+fm(c.spent)+'</span></div>'
-      +'<div style="background:#EEEBE4;border-radius:4px;height:10px;overflow:hidden">'
-      +'<div style="width:'+pct+'%;height:100%;background:'+(over?'#A32D2D':'#1D9E75')+'"></div></div>'
+      +'<span>'+c.icon+' '+c.label+'</span>'
+      +'<span><span style="color:#888;font-size:11px">Budget: '+fm(c.budget)+'</span> &nbsp; <span style="font-weight:700">Spent: '+fm(c.spent)+'</span> &nbsp; <span style="color:'+diffCol+';font-size:11px">'+diffStr+'</span></span></div>'
+      +'<div style="position:relative;background:#EEEBE4;border-radius:4px;height:12px;overflow:visible">'
+      +'<div style="width:'+spentPct+'%;height:100%;background:'+(over?'#A32D2D':'#1D9E75')+';border-radius:4px;transition:width 0.3s"></div>'
+      +'<div style="position:absolute;top:-3px;left:'+budgetPct+'%;width:2px;height:18px;background:#1A1917;border-radius:1px" title="Budget allocation"></div>'
+      +'</div>'
       +'</div>';
   }).join('');
 
@@ -1252,7 +1263,21 @@ function generateSnapshot(){
     +'<h1>Family Budget Snapshot</h1>'
     +'<div class="sub">Tracking since '+startLbl+' &middot; Generated '+todayLbl+'</div>'
     +'<div class="stats">'
-    +'<div class="stat"><div class="stat-lbl">This fortnight ('+periodLbl+')</div><div class="stat-val" style="color:'+(fnDiff>=0?'#1D9E75':'#A32D2D')+'">'+(fnDiff>=0?'Under by ':'Over by ')+fm(Math.abs(fnDiff))+'</div></div>'
+    +'<div class="stat"><div class="stat-lbl">This fortnight ('+periodLbl+')</div><div class="stat-val" style="color:'+(fnDiff>=0?'#1D9E75':'#A32D2D')+'">'+(fnDiff>=0?'Under by ':'Over by ')+fm(Math.abs(fnDiff))+'</div>'
+    +(function(){
+      // Budget pace marker: how much should have been spent by today
+      const fnStartDate=new Date(pk+'T00:00:00');
+      const today=new Date();
+      const dayOfFn=Math.min(13,Math.max(0,Math.round((today-fnStartDate)/864e5)));
+      const paceRatio=(dayOfFn+1)/14;
+      const paceBudget=fnBudget*paceRatio;
+      const paceStatus=fnSpent<=paceBudget
+        ?('On pace – should have spent '+fm(paceBudget)+' by today')
+        :('Behind pace – should have spent '+fm(paceBudget)+' by today');
+      const paceCol=fnSpent<=paceBudget?'#1D9E75':'#A32D2D';
+      return '<div class="stat-lbl" style="margin-top:6px;color:'+paceCol+'">'+paceStatus+'</div>';
+    })()
+    +'</div>'
     +'<div class="stat"><div class="stat-lbl">Total spent to date</div><div class="stat-val">'+fm(totalSpent)+'</div></div>'
     +'<div class="stat"><div class="stat-lbl">'+(overUnder>=0?'Under by':'Over by')+' (overall)</div><div class="stat-val" style="color:'+(overUnder>=0?'#1D9E75':'#A32D2D')+'">'+fm(Math.abs(overUnder))+'</div></div>'
     +'</div>'
