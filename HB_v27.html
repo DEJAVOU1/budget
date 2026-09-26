@@ -169,14 +169,16 @@ const PS=new Date(2026,5,3);// Jun 3 local midnight
 const TS=new Date(2026,5,3);// Jun 3 local midnight
 
 const CATS=[
-  {id:'groceries',  label:'Groceries',        icon:'🛒',weekly:582.5,tracked:true},
+  {id:'groceries',  label:'Groceries',        icon:'🛒',weekly:582.5,tracked:true,
+    steps:[{from:'2026-09-23',weekly:580}]},
   {id:'medical',    label:'Medical',           icon:'🏥',weekly:100,  tracked:true,
-    steps:[{from:'2026-07-01',weekly:250},{from:'2026-09-09',weekly:242.5}]},
+    steps:[{from:'2026-07-01',weekly:250},{from:'2026-09-09',weekly:242.5},{from:'2026-09-23',weekly:240}]},
   {id:'petrolcar',  label:'Petrol / Car',      icon:'⛽',weekly:100,  tracked:true,
     steps:[{from:'2026-07-29',weekly:115}]},
   {id:'gifts',      label:'Gifts',             icon:'🎁',weekly:35,   tracked:true,
     steps:[{from:'2026-07-01',weekly:125},{from:'2026-09-09',weekly:120},{from:'2026-12-30',weekly:62.5}]},
-  {id:'house',      label:'House Purchases',   icon:'🏠',weekly:60,   tracked:true},
+  {id:'house',      label:'House Purchases',   icon:'🏠',weekly:60,   tracked:true,
+    steps:[{from:'2026-09-23',weekly:65}]},
   {id:'houserepairs',label:'House Repairs',    icon:'🔧',weekly:35,   tracked:true,
     steps:[{from:'2026-09-09',weekly:25}]},
   {id:'beauty',     label:'Beauty',            icon:'💅',weekly:70,   tracked:true,
@@ -187,7 +189,8 @@ const CATS=[
   {id:'uber',       label:'Uber / Taxi / Lime',       icon:'🚗',weekly:10,   tracked:true},
   {id:'eatingout',  label:'Eating Out',        icon:'🍽',weekly:80,   tracked:true,
     steps:[{from:'2026-07-01',weekly:75}]},
-  {id:'entertain',  label:'Going Out',         icon:'🎭',weekly:30,   tracked:true},
+  {id:'entertain',  label:'Going Out',         icon:'🎭',weekly:30,   tracked:true,
+    steps:[{from:'2026-09-23',weekly:35}]},
   {id:'petcare',    label:'Pet Care',          icon:'🐾',weekly:15,   tracked:true},
   {id:'alcohol',    label:'Alcohol',           icon:'🍷',weekly:35,   tracked:true},
   {id:'newtreats',  label:'Treats',            icon:'🍬',weekly:0,    tracked:true,
@@ -209,17 +212,17 @@ const CATS=[
 ];
 
 const SAVINGS=[
-  {id:'overseas2027',label:'Overseas Trip (one-off, active now)', weekly:100,  note:'Target ~$8,200 by Dec 2027',phase:'until2027',
-    steps:[{from:'2026-07-01',weekly:140},{from:'2026-09-09',weekly:145},{from:'2026-09-23',weekly:125},{from:'2026-12-30',weekly:163.5}]},
-  {id:'inheritance', label:"Kids' Shares",       weekly:190,  note:'Target $7,280/yr · into investment shares',phase:'always',
-    steps:[{from:'2026-09-09',weekly:202.5},{from:'2026-09-23',weekly:195}]},
-  {id:'emergency',   label:'Emergency Fund',     weekly:50,   note:'$2,600/yr – shock absorber',phase:'always',
+  {id:'overseas2027',label:'Overseas Trip (one-off, active now)', weekly:100,phase:'until2027',
+    steps:[{from:'2026-07-01',weekly:140},{from:'2026-09-09',weekly:145},{from:'2026-09-23',weekly:120},{from:'2026-12-30',weekly:163.5}]},
+  {id:'inheritance', label:"Kids' Shares",       weekly:190,phase:'always',
+    steps:[{from:'2026-09-09',weekly:202.5},{from:'2026-09-23',weekly:190}]},
+  {id:'emergency',   label:'Emergency Fund',     weekly:50,phase:'always',
     steps:[{from:'2026-07-01',weekly:40},{from:'2026-09-09',weekly:50},{from:'2026-09-23',weekly:45}]},
-  {id:'renovation',  label:'Renovation Fund',    weekly:27.5,   note:'$1,560/yr for repairs',phase:'always',
+  {id:'renovation',  label:'Renovation Fund',    weekly:27.5,phase:'always',
     steps:[{from:'2026-07-01',weekly:25},{from:'2026-09-09',weekly:40},{from:'2026-09-23',weekly:30}]},
-  {id:'localholiday',label:'Local Holiday',      weekly:57.5,   note:'$7,500 every 2 years',phase:'always',
+  {id:'localholiday',label:'Local Holiday',      weekly:57.5,phase:'always',
     steps:[{from:'2026-07-01',weekly:67.5},{from:'2026-09-09',weekly:72.5},{from:'2026-09-23',weekly:65},{from:'2026-12-30',weekly:75}]},
-  {id:'overseas4yr', label:'Overseas Trip (recurring, starts Jan 2028)', weekly:144,  note:'$30,000 every 4 yrs · not yet active',phase:'from2028'},
+  {id:'overseas4yr', label:'Overseas Trip (recurring, starts Jan 2028)', weekly:144,phase:'from2028'},
 ];
 
 const SEED={"periods":{}};
@@ -742,7 +745,7 @@ function render(){
     <div style="background:var(--sf);border:1px solid var(--br);border-radius:var(--rad);padding:12px 14px">
       ${CATS.map(c=>`<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--br);font-size:13px"><span>${c.icon} ${c.label}${c.fixed?' <span style="color:var(--tx3);font-size:10px">fixed</span>':''}</span><span style="font-weight:700">${fm(c.weekly*2)}/fn</span></div>`).join('')}
     </div></div>
-    <div class="sec"><button onclick="confirmReset()" style="width:100%;padding:12px;border-radius:var(--rs);font-size:14px;font-weight:600;cursor:pointer;border:1px solid var(--R);background:var(--Rbg);color:var(--Rtx)">Reset to Factory</button></div><div style="text-align:center;padding:8px;font-size:10px;color:var(--tx3)">Version updated 25 Sep 2026 01:47</div>`;
+    <div class="sec"><button onclick="confirmReset()" style="width:100%;padding:12px;border-radius:var(--rs);font-size:14px;font-weight:600;cursor:pointer;border:1px solid var(--R);background:var(--Rbg);color:var(--Rtx)">Reset to Factory</button></div><div style="text-align:center;padding:8px;font-size:10px;color:var(--tx3)">Version updated 26 Sep 2026 00:00</div>`;
   }else if(tab==='guide'){
     content=`<div class="sec">
 
@@ -820,7 +823,7 @@ function render(){
     <div style="background:var(--sf);border:1px solid var(--br);border-radius:var(--rad);padding:12px 14px">
       ${CATS.map(c=>`<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--br);font-size:13px"><span>${c.icon} ${c.label}${c.fixed?' <span style="color:var(--tx3);font-size:10px">fixed</span>':''}</span><span style="font-weight:700">${fm(c.weekly*2)}/fn</span></div>`).join('')}
     </div></div>
-    <div class="sec"><button onclick="confirmReset()" style="width:100%;padding:12px;border-radius:var(--rs);font-size:14px;font-weight:600;cursor:pointer;border:1px solid var(--R);background:var(--Rbg);color:var(--Rtx)">Reset to Factory</button></div><div style="text-align:center;padding:8px;font-size:10px;color:var(--tx3)">Version updated 25 Sep 2026 01:47</div>`;
+    <div class="sec"><button onclick="confirmReset()" style="width:100%;padding:12px;border-radius:var(--rs);font-size:14px;font-weight:600;cursor:pointer;border:1px solid var(--R);background:var(--Rbg);color:var(--Rtx)">Reset to Factory</button></div><div style="text-align:center;padding:8px;font-size:10px;color:var(--tx3)">Version updated 26 Sep 2026 00:00</div>`;
   }else if(tab==='guide'){
     content=`<div class="sec">
 
@@ -920,7 +923,7 @@ function render(){
     <div style="background:var(--sf);border:1px solid var(--br);border-radius:var(--rad);padding:12px 14px">
       ${CATS.map(c=>`<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--br);font-size:13px"><span>${c.icon} ${c.label}${c.fixed?' <span style="color:var(--tx3);font-size:10px">fixed</span>':''}</span><span style="font-weight:700">${fm(c.weekly*2)}/fn</span></div>`).join('')}
     </div></div>
-    <div class="sec"><button onclick="confirmReset()" style="width:100%;padding:12px;border-radius:var(--rs);font-size:14px;font-weight:600;cursor:pointer;border:1px solid var(--R);background:var(--Rbg);color:var(--Rtx)">Reset to Factory</button></div><div style="text-align:center;padding:8px;font-size:10px;color:var(--tx3)">Version updated 25 Sep 2026 01:47</div>`;
+    <div class="sec"><button onclick="confirmReset()" style="width:100%;padding:12px;border-radius:var(--rs);font-size:14px;font-weight:600;cursor:pointer;border:1px solid var(--R);background:var(--Rbg);color:var(--Rtx)">Reset to Factory</button></div><div style="text-align:center;padding:8px;font-size:10px;color:var(--tx3)">Version updated 26 Sep 2026 00:00</div>`;
   }else if(tab==='guide'){
     content=`<div class="sec">
     <div class="isec" style="background:var(--Bbg);border-radius:var(--rad);padding:14px 16px;margin-bottom:20px">
