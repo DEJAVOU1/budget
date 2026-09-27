@@ -524,10 +524,16 @@ function mkSavSq(s,offset){
   const data=D();
   const withdrawn=savTotalWithdrawn(data,s.id);
   const netSaved=savedToDate-withdrawn;
+  // Live percentage of this allocation against total active savings this fortnight
+  const pkDate=new Date(pk+'T12:00:00');
+  const activeSavTotal=SAVINGS.filter(function(sv){
+    return sv.phase==='always'||(sv.phase==='until2027'&&pkDate<=new Date('2027-12-31T00:00:00'))||(sv.phase==='from2028'&&pkDate>=new Date('2028-01-01T00:00:00'));
+  }).reduce(function(a,sv){return a+savWeeklyAt(sv,pk)*2;},0);
+  const pct=activeSavTotal>0?((curWeekly*2/activeSavTotal)*100).toFixed(1)+'%':'0%';
   return`<div class="sv-sq" onclick="openSav('${s.id}')" style="cursor:pointer">
-    <div><div class="sq-hd" style="margin-bottom:4px"><span class="sq-name">${s.label}</span></div>
+    <div><div class="sq-hd" style="margin-bottom:4px"><span class="sq-name">${s.label}</span><span style="float:right;font-size:11px;color:var(--T2);font-weight:600;background:var(--BG2);border-radius:8px;padding:2px 6px">${pct}</span></div>
     <div class="sv-fnlbl">Per fortnight</div><div class="sv-fn">${fm(curWeekly*2)}</div></div>
-    <div><div class="sv-note">${s.note}</div>
+    <div>
     <div class="sv-cum" style="opacity:.7">Annual allocation: ${fm(annual)}/yr</div>
     <div class="sv-cum" style="color:var(--G);font-weight:600">Net saved: ${fm(netSaved)}</div>
     ${withdrawn>0?`<div class="sv-cum" style="color:var(--R)">Withdrawn: -${fm(withdrawn)}</div>`:''}
