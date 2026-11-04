@@ -59,6 +59,16 @@ h1{font-size:18px;font-weight:700;letter-spacing:-.3px;line-height:1.2}
 .sv-note{font-size:14px;color:var(--tx2);line-height:1.3}
 .sv-cum{font-size:13px;font-weight:700;color:var(--Gtx);background:var(--Gbg);padding:2px 6px;border-radius:10px;display:inline-block}
 .sv-warn{font-size:9px;font-weight:600;color:var(--Rtx);background:var(--Rbg);padding:2px 6px;border-radius:10px;display:inline-block}
+.floor-card{background:var(--sf);border:1px solid var(--br);border-radius:var(--rad);padding:12px 14px;margin:0 16px 10px}
+.floor-title{font-size:10px;font-weight:700;color:var(--tx3);letter-spacing:.6px;text-transform:uppercase;margin-bottom:8px}
+.floor-row{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px}
+.floor-lbl{font-size:13px;color:var(--tx2);font-weight:500}
+.floor-val{font-size:18px;font-weight:700;letter-spacing:-.3px}
+.floor-locked{font-size:10px;color:var(--tx3);font-weight:600;background:var(--sf2);border-radius:6px;padding:1px 6px;margin-left:6px}
+.floor-input-row{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.floor-input{flex:1;background:var(--sf2);border:1px solid var(--br2);border-radius:8px;padding:7px 10px;font-size:16px;font-weight:600;color:var(--tx);font-family:inherit}
+.floor-save-btn{background:var(--Bbg);color:var(--Btx);border:1px solid var(--B);border-radius:8px;padding:7px 14px;font-size:13px;font-weight:700;cursor:pointer}
+.floor-status{font-size:14px;font-weight:700;padding:6px 10px;border-radius:8px;text-align:center}
 .sec{padding:0 16px;margin-bottom:10px}
 .sec-hd{font-size:10px;font-weight:700;color:var(--tx3);letter-spacing:.7px;text-transform:uppercase;margin-bottom:10px}
 .hist-card{background:var(--sf);border:1px solid var(--br);border-radius:var(--rs);padding:0;margin-bottom:8px;overflow:hidden}
@@ -475,6 +485,14 @@ function savWithdrawalsFor(data,savId){
   return(data.savWithdrawals||[]).filter(w=>w.savId===savId&&!w._deleted).sort((a,b)=>b.date.localeCompare(a.date));
 }
 function fm(n){return'$'+Math.abs(Math.round(n)).toLocaleString('en-AU');}
+function saveFloorOffset(){
+  const el=document.getElementById('floorOffsetInput');
+  if(!el)return;
+  const val=el.value.trim();
+  if(val)localStorage.setItem('floorOffset',val);
+  else localStorage.removeItem('floorOffset');
+  render();
+}
 function fm2(n){return'$'+Math.abs(n).toLocaleString('en-AU',{minimumFractionDigits:2,maximumFractionDigits:2});}
 function fmtDate(iso){if(!iso||iso.length<10)return iso||'';const[y,m,d]=iso.split('-');return d+'/'+m+'/'+y;}
 function pct(a,b){return b>0?Math.min(100,Math.max(0,Math.round(a/b*100))):0;}
@@ -668,7 +686,33 @@ function render(){
     const savTot=activeSav.reduce((a,s)=>a+savWeeklyAt(s,pk)*2,0);
     const savCum=activeSav.filter(s=>s.phase!=='from2028').reduce((a,s)=>a+cumSav(s),0);
     const sq=activeSav.map(s=>mkSavSq(s,cur)).join('');
+    // Pay cycle floor card
+    const FLOOR_BASE=29400;
+    const FLOOR_CYCLE_START=new Date(2026,10,4);// 4 Nov 2026 local midnight
+    const daysSinceFloorStart=Math.floor((new Date()-FLOOR_CYCLE_START)/864e5);
+    const cyclesSinceStart=Math.max(0,Math.floor(daysSinceFloorStart/14));
+    const currentFloor=FLOOR_BASE+(cyclesSinceStart*900);
+    const savedOffset=localStorage.getItem('floorOffset')||'';
+    const offsetNum=parseFloat((savedOffset||'').replace(/[^0-9.]/g,''))||0;
+    const diff=offsetNum-currentFloor;
+    const diffAbs=Math.abs(Math.round(diff));
+    const diffLabel=diff>=0?`▲ $${diffAbs.toLocaleString('en-AU')} above floor`:`▼ $${diffAbs.toLocaleString('en-AU')} below floor`;
+    const diffBg=diff>=0?'var(--Gbg)':'var(--Rbg)';
+    const diffColor=diff>=0?'var(--Gtx)':'var(--Rtx)';
+    const floorCard=`<div class="floor-card">
+      <div class="floor-title">Pay Cycle Floor</div>
+      <div class="floor-row">
+        <span class="floor-lbl">Current floor<span class="floor-locked">locked</span></span>
+        <span class="floor-val">${fm(currentFloor)}</span>
+      </div>
+      <div class="floor-input-row">
+        <input class="floor-input" id="floorOffsetInput" type="number" placeholder="Enter offset balance" value="${savedOffset}" inputmode="decimal"/>
+        <button class="floor-save-btn" onclick="saveFloorOffset()">Save</button>
+      </div>
+      ${savedOffset?`<div class="floor-status" style="background:${diffBg};color:${diffColor}">${diffLabel}</div>`:'<div class="floor-status" style="background:var(--sf2);color:var(--tx3)">Enter your offset balance above</div>'}
+    </div>`;
     content=`<div class="sum-row"><div class="scard"><div class="sc-lbl">Saving this fn</div><div class="sc-val" style="color:var(--B)">${fm(savTot)}</div></div><div class="scard"><div class="sc-lbl">Saved since Jun 3</div><div class="sc-val" style="color:var(--G)">≈${fm(savCum)}</div></div></div>
+    ${floorCard}
     <div class="sec"><div class="sq-grid">${sq}</div>
     </div>`;
   }else if(tab==='history'){
