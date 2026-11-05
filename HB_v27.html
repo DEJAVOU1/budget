@@ -711,10 +711,7 @@ function render(){
       </div>
       ${savedOffset?`<div class="floor-status" style="background:${diffBg};color:${diffColor}">${diffLabel}</div>`:'<div class="floor-status" style="background:var(--sf2);color:var(--tx3)">Enter your offset balance above</div>'}
     </div>`;
-    content=`<div class="sum-row"><div class="scard"><div class="sc-lbl">Saving this fn</div><div class="sc-val" style="color:var(--B)">${fm(savTot)}</div></div><div class="scard"><div class="sc-lbl">Saved since Jun 3</div><div class="sc-val" style="color:var(--G)">≈${fm(savCum)}</div></div></div>
-    ${floorCard}
-    <div class="sec"><div class="sq-grid">${sq}</div>
-    </div>`;
+    content=`${floorCard}<div class="sec"><div class="sq-grid">${sq}</div></div>`;
   }else if(tab==='history'){
     // Combined status: essentials + fixed
     const allCats=[...tracked,...fixed];
